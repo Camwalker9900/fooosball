@@ -1,0 +1,1131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Fooosballl Odds Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
+
+<style>
+:root {
+  color-scheme: light;
+  --plane: #f2f3f6;
+  --surface: #fcfcfd;
+  --surface-2: #f7f8fa;
+  --ink: #0f1218;
+  --ink-2: #4e5561;
+  --ink-3: #858c9a;
+  --rule: #e3e5eb;
+  --rule-strong: #cfd3dc;
+  --accent: #2a78d6;
+  --s1: #2a78d6;
+  --s2: #eb6834;
+  --s3: #1baf7a;
+  --recessive: #c6c9d2;
+  --bar: #b9cdea;
+  --bar-lead: #2a78d6;
+  --shadow: 0 1px 2px rgba(15,18,24,.05), 0 8px 24px -12px rgba(15,18,24,.14);
+  --ring: rgba(15,18,24,.10);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --plane: #0c0e12;
+    --surface: #171a20;
+    --surface-2: #1d2128;
+    --ink: #f5f7fa;
+    --ink-2: #b2b9c6;
+    --ink-3: #838b99;
+    --rule: #262b34;
+    --rule-strong: #343a45;
+    --accent: #3987e5;
+    --s1: #3987e5;
+    --s2: #d95926;
+    --s3: #199e70;
+    --recessive: #434a58;
+    --bar: #234870;
+    --bar-lead: #3987e5;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    --ring: rgba(255,255,255,.10);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --plane: #0c0e12;
+  --surface: #171a20;
+  --surface-2: #1d2128;
+  --ink: #f5f7fa;
+  --ink-2: #b2b9c6;
+  --ink-3: #838b99;
+  --rule: #262b34;
+  --rule-strong: #343a45;
+  --accent: #3987e5;
+  --s1: #3987e5;
+  --s2: #d95926;
+  --s3: #199e70;
+  --recessive: #434a58;
+  --bar: #234870;
+  --bar-lead: #3987e5;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  --ring: rgba(255,255,255,.10);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--plane);
+  color: var(--ink);
+  font-family: Archivo, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 32px 24px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ---------- masthead ---------- */
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--ink);
+}
+.mast-left { display: flex; flex-direction: column; gap: 6px; }
+.eyebrow {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+h1 {
+  margin: 0;
+  font-size: clamp(30px, 5vw, 46px);
+  font-weight: 700;
+  letter-spacing: -.024em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+.mast-right {
+  display: flex;
+  gap: 28px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.mast-stat { display: flex; flex-direction: column; gap: 2px; }
+.mast-stat .k {
+  font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3);
+}
+.mast-stat .v { font-size: 17px; font-weight: 500; color: var(--ink); }
+
+/* ---------- cards ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+}
+.card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px 20px;
+  padding: 18px 22px 14px;
+}
+.card-head h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -.012em;
+}
+.card-head .sub {
+  font-size: 13px;
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+
+/* ---------- hero row ---------- */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 780px) { .hero { grid-template-columns: 1fr; } }
+
+.favorite {
+  position: sticky;
+  top: 24px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+}
+.favorite .figure {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 60px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -.03em;
+  color: var(--accent);
+}
+.favorite .who { font-size: 20px; font-weight: 600; letter-spacing: -.01em; margin-top: 8px; }
+.favorite .team { font-size: 14px; color: var(--ink-2); }
+.favorite .foot {
+  margin-top: 14px;
+  font-size: 12.5px; color: var(--ink-3); line-height: 1.45;
+}
+.fav-stats {
+  margin: 16px 0 0; padding: 14px 0 2px;
+  border-top: 1px solid var(--rule);
+  display: grid; gap: 9px;
+}
+.fav-stats > div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.fav-stats dt { font-size: 12.5px; color: var(--ink-3); }
+.fav-stats dd {
+  margin: 0; font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- odds board ---------- */
+.board { padding: 4px 22px 20px; }
+.board-row {
+  display: grid;
+  grid-template-columns: 26px minmax(96px, 1.15fr) minmax(0, 2.6fr) 52px;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 0;
+  border-top: 1px solid var(--rule);
+}
+.board-row:first-child { border-top: none; }
+.board-rank {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; text-align: right;
+}
+.board-name { min-width: 0; }
+.board-mgr {
+  font-size: 14px; font-weight: 500; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.board-team {
+  font-size: 11.5px; color: var(--ink-3); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.board-track { height: 10px; background: var(--surface-2); border-radius: 2px; overflow: hidden; }
+.board-fill { height: 100%; background: var(--bar); border-radius: 0 2px 2px 0; }
+.board-row.lead .board-fill { background: var(--bar-lead); }
+.board-pct {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 13.5px; font-weight: 500; font-variant-numeric: tabular-nums; text-align: right;
+}
+
+/* ---------- controls ---------- */
+.controls {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  padding: 0 22px 16px;
+}
+.seg {
+  display: inline-flex; border: 1px solid var(--rule-strong); border-radius: 3px; overflow: hidden;
+}
+.seg button {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px; font-weight: 500; letter-spacing: .04em;
+  padding: 7px 14px; color: var(--ink-2);
+}
+.seg button + button { border-left: 1px solid var(--rule-strong); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.hint { font-size: 12.5px; color: var(--ink-3); }
+
+/* ---------- chart ---------- */
+.plot-wrap { position: relative; padding: 0 12px 8px; }
+.plot { display: block; width: 100%; touch-action: pan-y; }
+.plot text { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+.empty-note {
+  position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%);
+  max-width: 340px; text-align: center; font-size: 13px; color: var(--ink-2);
+  background: var(--surface); padding: 10px 14px; border: 1px solid var(--rule);
+  border-radius: 3px; pointer-events: none;
+}
+
+.tip {
+  position: absolute; pointer-events: none; z-index: 4;
+  background: var(--surface); border: 1px solid var(--rule-strong);
+  border-radius: 3px; box-shadow: var(--shadow);
+  padding: 8px 10px; min-width: 190px; opacity: 0; transition: opacity .09s;
+}
+@media (prefers-reduced-motion: reduce) { .tip { transition: none; } }
+.tip.on { opacity: 1; }
+.tip-head {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-3); padding-bottom: 5px; margin-bottom: 5px;
+  border-bottom: 1px solid var(--rule);
+}
+.tip-row {
+  display: grid; grid-template-columns: 12px minmax(0,1fr) auto;
+  align-items: center; gap: 7px; padding: 1.5px 0;
+}
+.tip-key { display: block; width: 12px; height: 2px; border-radius: 1px; }
+.tip-name {
+  font-size: 12px; color: var(--ink-2); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.tip-row.hot .tip-name { color: var(--ink); font-weight: 500; }
+.tip-val {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px; font-weight: 600; color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- legend ---------- */
+.legend {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 4px 22px 20px;
+}
+.chip {
+  appearance: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--rule-strong); border-radius: 999px;
+  background: transparent; color: var(--ink-2);
+  font-family: Archivo, sans-serif; font-size: 12.5px;
+  padding: 4px 11px 4px 8px;
+}
+.chip:hover { border-color: var(--ink-3); color: var(--ink); }
+.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chip .swatch {
+  width: 12px; height: 2px; border-radius: 1px; background: var(--recessive); flex: none;
+}
+.chip[aria-pressed="true"] { color: var(--ink); border-color: currentColor; font-weight: 500; }
+
+/* ---------- small multiples ---------- */
+.grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 1px; background: var(--rule);
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+}
+.panel { background: var(--surface); padding: 12px 14px 8px; display: flex; flex-direction: column; gap: 2px; }
+.panel-mgr {
+  font-size: 13px; font-weight: 500; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.panel-val {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums;
+}
+.panel svg { display: block; width: 100%; height: auto; margin-top: 4px; }
+
+/* ---------- table ---------- */
+.table-scroll { overflow-x: auto; padding: 0 22px 20px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { padding: 8px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--rule); }
+th:nth-child(2), td:nth-child(2), th:nth-child(3), td:nth-child(3) { text-align: left; }
+thead th {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--ink-3); font-weight: 500; border-bottom: 1px solid var(--rule-strong);
+}
+tbody td { font-variant-numeric: tabular-nums; }
+tbody td.num { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+tbody tr:last-child td { border-bottom: none; }
+td.mgr { font-weight: 500; }
+td.dim { color: var(--ink-3); }
+td.move { text-align: left; white-space: normal; min-width: 220px; }
+td.move .minus { color: var(--ink-3); }
+.grade-chip {
+  display: inline-block; min-width: 26px; text-align: center;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px; font-weight: 600; padding: 2px 7px;
+  border-radius: 3px; border: 1px solid var(--rule-strong);
+}
+.grade-chip.good { border-color: currentColor; color: var(--accent); }
+.grade-chip.bad { border-color: currentColor; color: var(--s2); }
+
+/* ---------- method ---------- */
+.method { padding: 4px 22px 24px; }
+.method-body {
+  font-family: Newsreader, Georgia, serif;
+  font-size: 16.5px; line-height: 1.6; color: var(--ink-2);
+  max-width: 66ch;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.method-body strong { color: var(--ink); font-weight: 500; }
+.method-list {
+  margin: 0; padding: 0; list-style: none;
+  display: grid; gap: 10px;
+  font-family: Archivo, sans-serif; font-size: 13.5px; color: var(--ink-2);
+  max-width: 72ch;
+}
+.method-list li { display: grid; grid-template-columns: 118px minmax(0, 1fr); gap: 14px; }
+.method-list .term {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3);
+  padding-top: 3px;
+}
+.caveat {
+  margin-top: 18px; padding: 12px 14px;
+  border-left: 2px solid var(--rule-strong); background: var(--surface-2);
+  font-size: 13px; color: var(--ink-2); max-width: 72ch; border-radius: 0 3px 3px 0;
+}
+footer {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px; letter-spacing: .04em; color: var(--ink-3);
+  border-top: 1px solid var(--rule); padding-top: 16px;
+}
+</style>
+</head>
+<body>
+
+<script id="odds-data" type="application/json">{"generatedAt":"2026-09-14T18:22:49.849502+00:00","leagueName":"Fooosballl","sims":100000000,"weeklySd":22.5,"model":{"leagueMean":126.59,"leagueMeanSource":"previous season (2025)","strengthUncertainty":6.54,"drift":1.2,"talentSd":8.54,"projSpread":3.89,"calibratedFrom":"2025"},"grades":[{"week":1,"type":"waiver","created":"2026-09-07T02:55:48.234000+00:00","mgr":"Noloisdaddy","grade":"A+","adds":["Wan'Dale Robinson"],"drops":["Daniel Jones"],"dPpg":0.53,"dTitle":0.377,"verdict":"","notes":["Daniel Jones was replacement-level -- free to drop"]},{"week":1,"type":"free_agent","created":"2026-09-05T02:11:58.462000+00:00","mgr":"RichieRitch","grade":"C","adds":["Jalen Nailor"],"drops":[],"dPpg":0.0,"dTitle":0.0,"verdict":"","notes":[]},{"week":1,"type":"free_agent","created":"2026-09-05T02:15:13.760000+00:00","mgr":"Cam000","grade":"C","adds":["LV"],"drops":[],"dPpg":0.0,"dTitle":0.0,"verdict":"","notes":[]},{"week":1,"type":"free_agent","created":"2026-09-05T02:16:00.399000+00:00","mgr":"Cam000","grade":"C","adds":["KC"],"drops":["LV"],"dPpg":0.0,"dTitle":0.0,"verdict":"","notes":["LV was replacement-level -- free to drop"]},{"week":1,"type":"free_agent","created":"2026-09-05T03:03:55.051000+00:00","mgr":"Cam000","grade":"C","adds":["Trey Smack"],"drops":["Keaton Mitchell"],"dPpg":0.0,"dTitle":0.0,"verdict":"","notes":["Keaton Mitchell was replacement-level -- free to drop"]},{"week":1,"type":"free_agent","created":"2026-09-05T03:11:34.509000+00:00","mgr":"SeanOrShawn","grade":"C","adds":["Tre Tucker"],"drops":["Josh Jacobs"],"dPpg":0.0,"dTitle":0.0,"verdict":"","notes":[]},{"week":1,"type":"free_agent","created":"2026-09-05T03:18:47.389000+00:00","mgr":"SeanOrShawn","grade":"C","adds":["Spencer Shrader"],"drops":["Harrison Butker"],"dPpg":0.0,"dTitle":0.0,"verdict":"","notes":["Harrison Butker was replacement-level -- free to drop"]},{"week":1,"type":"free_agent","created":"2026-09-05T11:57:30.833000+00:00","mgr":"Noloisdaddy","grade":"C","adds":["Daniel Jones"],"drops":["Tank Bigsby"],"dPpg":0.0,"dTitle":0.0,"verdict":"","notes":["Tank Bigsby was replacement-level -- free to drop"]},{"week":1,"type":"free_agent","created":"2026-09-07T19:35:35.705000+00:00","mgr":"WWEDADDY","grade":"C","adds":["Devaughn Vele"],"drops":["Ja'Kobi Lane"],"dPpg":0.0,"dTitle":0.0,"verdict":"","notes":["Ja'Kobi Lane was replacement-level -- free to drop"]},{"week":1,"type":"free_agent","created":"2026-09-09T20:55:03.584000+00:00","mgr":"RobMasonHicks","grade":"C","adds":["Tyler Loop"],"drops":["De'Zhaun Stribling"],"dPpg":0.0,"dTitle":0.0,"verdict":"","notes":["De'Zhaun Stribling was replacement-level -- free to drop"]},{"week":1,"type":"free_agent","created":"2026-09-13T00:01:23.256000+00:00","mgr":"Noloisdaddy","grade":"D+","adds":["Michael Mayer"],"drops":["Tyrone Tracy"],"dPpg":-0.05,"dTitle":-0.02,"verdict":"","notes":[]},{"week":1,"type":"free_agent","created":"2026-09-07T20:41:15.189000+00:00","mgr":"zachgoin","grade":"D","adds":["LAC"],"drops":["DET"],"dPpg":-0.09,"dTitle":-0.104,"verdict":"","notes":["DET was replacement-level -- free to drop"]},{"week":1,"type":"waiver","created":"2026-09-06T23:44:12.393000+00:00","mgr":"RobMasonHicks","grade":"F","adds":["Josh Jacobs"],"drops":["Wan'Dale Robinson"],"dPpg":-0.4,"dTitle":-0.178,"verdict":"","notes":["Josh Jacobs is currently unavailable (NA)"]},{"week":1,"type":"free_agent","created":"2026-09-05T03:05:24.210000+00:00","mgr":"SeanOrShawn","grade":"F","adds":["LV"],"drops":["BAL"],"dPpg":-0.35,"dTitle":-0.476,"verdict":"","notes":[]}],"seasons":{"2026":{"season":"2026","label":"2026","state":"live","asOf":1,"weeksPlayed":0,"regWeeks":14,"playoffTeams":8,"playoffStart":15,"partialWeeks":[1],"pendingStarters":9,"pendingTeams":7,"sidelined":[{"mgr":"RobMasonHicks","player":"Kyler Murray","status":"Out","ppg":15.7},{"mgr":"RichieRitch","player":"Zay Flowers","status":"Out","ppg":12.7},{"mgr":"Noloisdaddy","player":"Brock Bowers","status":"Out","ppg":12.6},{"mgr":"FrankyP21","player":"TreVeyon Henderson","status":"Out","ppg":9.5},{"mgr":"Cam000","player":"A.J. Brown","status":"IR","ppg":9.3},{"mgr":"RobMasonHicks","player":"Josh Jacobs","status":"NA","ppg":7.7},{"mgr":"Perez0528","player":"Jordyn Tyson","status":"IR","ppg":6.2}],"snapshots":[{"week":0,"teams":[{"rid":1,"mgr":"Noloisdaddy","team":"Super Ja\u2019Marrio Bros","champ":6.0,"playoff":60.87,"projW":6.68,"ppg":123.78,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":2,"mgr":"Rosasinlacasa3","team":"Sherlock Mahomes","champ":11.97,"playoff":77.11,"projW":7.54,"ppg":130.89,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":3,"mgr":"zachgoin","team":"Tee pee","champ":7.59,"playoff":66.96,"projW":6.99,"ppg":126.24,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":4,"mgr":"WWEDADDY","team":"LAMAR had a LITTLE LAMB","champ":9.09,"playoff":72.66,"projW":7.33,"ppg":127.62,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":5,"mgr":"FrankyP21","team":"Mark(s) my Love","champ":4.73,"playoff":51.43,"projW":6.15,"ppg":122.16,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":6,"mgr":"RichieRitch","team":"Bishop Sycamore","champ":4.98,"playoff":53.41,"projW":6.24,"ppg":122.92,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":7,"mgr":"pickadiffrenthobby","team":"Taylors Diggs pics","champ":7.56,"playoff":65.71,"projW":6.87,"ppg":126.42,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":8,"mgr":"Cam000","team":"Staff Infection","champ":4.14,"playoff":50.6,"projW":6.13,"ppg":120.88,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":9,"mgr":"RobMasonHicks","team":"#freeDaejonLove","champ":8.24,"playoff":68.27,"projW":7.04,"ppg":126.97,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":10,"mgr":"SeanOrShawn","team":"Sean\u2019s Super Duper Team","champ":9.47,"playoff":72.68,"projW":7.29,"ppg":128.32,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":11,"mgr":"Perez0528","team":"Dawg Pound","champ":16.6,"playoff":85.47,"projW":8.25,"ppg":134.8,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":12,"mgr":"ConnorLator","team":"Naberly Burro","champ":9.63,"playoff":74.83,"projW":7.48,"ppg":128.15,"w":0,"l":0,"ties":0,"pf":0.0}]},{"week":1,"teams":[{"rid":1,"mgr":"Noloisdaddy","team":"Super Ja\u2019Marrio Bros","champ":5.36,"playoff":51.95,"projW":6.27,"ppg":123.78,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":2,"mgr":"Rosasinlacasa3","team":"Sherlock Mahomes","champ":11.26,"playoff":70.94,"projW":7.0,"ppg":130.89,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":3,"mgr":"zachgoin","team":"Tee pee","champ":7.96,"playoff":70.91,"projW":7.4,"ppg":126.24,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":4,"mgr":"WWEDADDY","team":"LAMAR had a LITTLE LAMB","champ":9.29,"playoff":74.35,"projW":7.5,"ppg":127.62,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":5,"mgr":"FrankyP21","team":"Mark(s) my Love","champ":4.48,"playoff":47.64,"projW":5.98,"ppg":122.16,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":6,"mgr":"RichieRitch","team":"Bishop Sycamore","champ":5.66,"playoff":63.11,"projW":6.8,"ppg":122.92,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":7,"mgr":"pickadiffrenthobby","team":"Taylors Diggs pics","champ":8.35,"playoff":74.63,"projW":7.48,"ppg":126.42,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":8,"mgr":"Cam000","team":"Staff Infection","champ":3.69,"playoff":43.02,"projW":5.73,"ppg":120.88,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":9,"mgr":"RobMasonHicks","team":"#freeDaejonLove","champ":9.18,"playoff":78.55,"projW":7.58,"ppg":126.97,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":10,"mgr":"SeanOrShawn","team":"Sean\u2019s Super Duper Team","champ":10.1,"playoff":78.43,"projW":7.69,"ppg":128.32,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":11,"mgr":"Perez0528","team":"Dawg Pound","champ":15.85,"playoff":80.33,"projW":7.65,"ppg":134.8,"w":0,"l":0,"ties":0,"pf":0.0},{"rid":12,"mgr":"ConnorLator","team":"Naberly Burro","champ":8.82,"playoff":66.13,"projW":6.92,"ppg":128.15,"w":0,"l":0,"ties":0,"pf":0.0}]}]},"2025":{"season":"2025","label":"2025","state":"complete","asOf":14,"weeksPlayed":14,"regWeeks":14,"playoffTeams":8,"playoffStart":15,"partialWeeks":[],"pendingStarters":0,"pendingTeams":0,"sidelined":[],"snapshots":[{"week":0,"teams":[{"rid":1,"mgr":"Noloisdaddy","team":"Dont call it a comeback","champ":4.56,"playoff":56.55,"projW":6.5,"ppg":125.72,"w":6,"l":8,"ties":0,"pf":1627.44},{"rid":2,"mgr":"Rosasinlacasa3","team":"Sherlock Mahomes","champ":3.41,"playoff":59.7,"projW":6.72,"ppg":123.16,"w":7,"l":7,"ties":0,"pf":1796.08},{"rid":3,"mgr":"zachgoin","team":"You Nervous?","champ":16.14,"playoff":90.86,"projW":8.4,"ppg":137.59,"w":8,"l":6,"ties":0,"pf":1900.74},{"rid":4,"mgr":"WWEDADDY","team":"COACH ELLISON","champ":9.8,"playoff":80.77,"projW":7.65,"ppg":131.93,"w":10,"l":4,"ties":0,"pf":2034.88},{"rid":5,"mgr":"FrankyP21","team":"Little Johnston","champ":0.42,"playoff":12.97,"projW":4.23,"ppg":114.81,"w":5,"l":9,"ties":0,"pf":1605.94},{"rid":6,"mgr":"RichieRitch","team":"Bishop Sycamore","champ":9.44,"playoff":77.08,"projW":7.38,"ppg":131.85,"w":10,"l":4,"ties":0,"pf":1986.34},{"rid":7,"mgr":"pickadiffrenthobby","team":"I hate sports","champ":9.38,"playoff":77.28,"projW":7.44,"ppg":131.57,"w":6,"l":8,"ties":0,"pf":1789.86},{"rid":8,"mgr":"Cam000","team":"Cry me a Rivers","champ":9.68,"playoff":82.96,"projW":7.85,"ppg":131.89,"w":7,"l":7,"ties":0,"pf":1568.04},{"rid":9,"mgr":"RobMasonHicks","team":"SKAT","champ":0.22,"playoff":10.3,"projW":4.08,"ppg":112.49,"w":6,"l":8,"ties":0,"pf":1753.48},{"rid":10,"mgr":"SeanOrShawn","team":"Nolo\u2019sDaddy","champ":9.85,"playoff":80.76,"projW":7.67,"ppg":132.1,"w":5,"l":9,"ties":0,"pf":1670.74},{"rid":11,"mgr":"Perez0528","team":"Dawg Pound","champ":10.53,"playoff":79.13,"projW":7.47,"ppg":132.9,"w":8,"l":6,"ties":0,"pf":1798.6},{"rid":12,"mgr":"ConnorLator","team":"FBI\u2019s most wanted","champ":16.58,"playoff":91.64,"projW":8.61,"ppg":137.91,"w":6,"l":8,"ties":0,"pf":1735.82}]},{"week":1,"teams":[{"rid":1,"mgr":"Noloisdaddy","team":"Dont call it a comeback","champ":2.14,"playoff":35.47,"projW":5.38,"ppg":116.72,"w":6,"l":8,"ties":0,"pf":1627.44},{"rid":2,"mgr":"Rosasinlacasa3","team":"Sherlock Mahomes","champ":3.57,"playoff":61.68,"projW":6.56,"ppg":117.92,"w":7,"l":7,"ties":0,"pf":1796.08},{"rid":3,"mgr":"zachgoin","team":"You Nervous?","champ":9.41,"playoff":77.53,"projW":7.17,"ppg":126.33,"w":8,"l":6,"ties":0,"pf":1900.74},{"rid":4,"mgr":"WWEDADDY","team":"COACH ELLISON","champ":24.27,"playoff":98.67,"projW":9.84,"ppg":135.76,"w":10,"l":4,"ties":0,"pf":2034.88},{"rid":5,"mgr":"FrankyP21","team":"Little Johnston","champ":2.94,"playoff":53.57,"projW":6.19,"ppg":116.83,"w":5,"l":9,"ties":0,"pf":1605.94},{"rid":6,"mgr":"RichieRitch","team":"Bishop Sycamore","champ":9.29,"playoff":83.56,"projW":7.71,"ppg":124.7,"w":10,"l":4,"ties":0,"pf":1986.34},{"rid":7,"mgr":"pickadiffrenthobby","team":"I hate sports","champ":5.09,"playoff":57.57,"projW":6.29,"ppg":121.55,"w":6,"l":8,"ties":0,"pf":1789.86},{"rid":8,"mgr":"Cam000","team":"Cry me a Rivers","champ":14.94,"playoff":95.17,"projW":8.93,"ppg":129.53,"w":7,"l":7,"ties":0,"pf":1568.04},{"rid":9,"mgr":"RobMasonHicks","team":"SKAT","champ":0.07,"playoff":4.72,"projW":3.34,"ppg":103.94,"w":6,"l":8,"ties":0,"pf":1753.48},{"rid":10,"mgr":"SeanOrShawn","team":"Nolo\u2019sDaddy","champ":11.72,"playoff":90.35,"projW":8.32,"ppg":127.03,"w":5,"l":9,"ties":0,"pf":1670.74},{"rid":11,"mgr":"Perez0528","team":"Dawg Pound","champ":4.59,"playoff":52.74,"projW":6.03,"ppg":121.36,"w":8,"l":6,"ties":0,"pf":1798.6},{"rid":12,"mgr":"ConnorLator","team":"FBI\u2019s most wanted","champ":11.98,"playoff":88.99,"projW":8.22,"ppg":127.92,"w":6,"l":8,"ties":0,"pf":1735.82}]},{"week":2,"teams":[{"rid":1,"mgr":"Noloisdaddy","team":"Dont call it a comeback","champ":0.8,"playoff":20.28,"projW":4.5,"ppg":116.12,"w":6,"l":8,"ties":0,"pf":1627.44},{"rid":2,"mgr":"Rosasinlacasa3","team":"Sherlock Mahomes","champ":3.16,"playoff":72.81,"projW":7.0,"ppg":118.96,"w":7,"l":7,"ties":0,"pf":1796.08},{"rid":3,"mgr":"zachgoin","team":"You Nervous?","champ":15.89,"playoff":95.13,"projW":8.44,"ppg":134.41,"w":8,"l":6,"ties":0,"pf":1900.74},{"rid":4,"mgr":"WWEDADDY","team":"COACH ELLISON","champ":26.4,"playoff":99.74,"projW":10.47,"ppg":140.88,"w":10,"l":4,"ties":0,"pf":2034.88},{"rid":5,"mgr":"FrankyP21","team":"Little Johnston","champ":1.67,"playoff":41.85,"projW":5.53,"ppg":116.93,"w":5,"l":9,"ties":0,"pf":1605.94},{"rid":6,"mgr":"RichieRitch","team":"Bishop Sycamore","champ":7.1,"playoff":79.02,"projW":7.09,"ppg":126.35,"w":10,"l":4,"ties":0,"pf":1986.34},{"rid":7,"mgr":"pickadiffrenthobby","team":"I hate sports","champ":5.94,"playoff":73.55,"projW":6.89,"ppg":124.75,"w":6,"l":8,"ties":0,"pf":1789.86},{"rid":8,"mgr":"Cam000","team":"Cry me a Rivers","champ":16.82,"playoff":98.41,"projW":9.55,"ppg":134.51,"w":7,"l":7,"ties":0,"pf":1568.04},{"rid":9,"mgr":"RobMasonHicks","team":"SKAT","champ":0.06,"playoff":4.14,"projW":3.17,"ppg":105.86,"w":6,"l":8,"ties":0,"pf":1753.48},{"rid":10,"mgr":"SeanOrShawn","team":"Nolo\u2019sDaddy","champ":13.34,"playoff":96.92,"projW":9.04,"ppg":131.71,"w":5,"l":9,"ties":0,"pf":1670.74},{"rid":11,"mgr":"Perez0528","team":"Dawg Pound","champ":4.76,"playoff":56.53,"projW":5.87,"ppg":125.23,"w":8,"l":6,"ties":0,"pf":1798.6},{"rid":12,"mgr":"ConnorLator","team":"FBI\u2019s most wanted","champ":4.08,"playoff":61.61,"projW":6.45,"ppg":122.87,"w":6,"l":8,"ties":0,"pf":1735.82}]},{"week":3,"teams":[{"rid":1,"mgr":"Noloisdaddy","team":"Dont call it a comeback","champ":1.41,"playoff":30.83,"projW":5.29,"ppg":116.01,"w":6,"l":8,"ties":0,"pf":1627.44},{"rid":2,"mgr":"Rosasinlacasa3","team":"Sherlock Mahomes","champ":7.71,"playoff":92.62,"projW":8.22,"ppg":124.57,"w":7,"l":7,"ties":0,"pf":1796.08},{"rid":3,"mgr":"zachgoin","team":"You Nervous?","champ":17.29,"playoff":97.37,"projW":8.91,"ppg":133.78,"w":8,"l":6,"ties":0,"pf":1900.74},{"rid":4,"mgr":"WWEDADDY","team":"COACH ELLISON","champ":26.3,"playoff":99.32,"projW":9.8,"ppg":139.49,"w":10,"l":4,"ties":0,"pf":2034.88},{"rid":5,"mgr":"FrankyP21","team":"Little Johnston","champ":0.65,"playoff":19.48,"projW":4.68,"ppg":112.81,"w":5,"l":9,"ties":0,"pf":1605.94},{"rid":6,"mgr":"RichieRitch","team":"Bishop Sycamore","champ":13.53,"playoff":95.05,"projW":8.49,"ppg":130.68,"w":10,"l":4,"ties":0,"pf":1986.34},{"rid":7,"mgr":"pickadiffrenthobby","team":"I hate sports","champ":6.98,"playoff":81.35,"projW":7.38,"ppg":124.4,"w":6,"l":8,"ties":0,"pf":1789.86},{"rid":8,"mgr":"Cam000","team":"Cry me a Rivers","champ":8.31,"playoff":88.43,"projW":7.91,"ppg":125.9,"w":7,"l":7,"ties":0,"pf":1568.04},{"rid":9,"mgr":"RobMasonHicks","team":"SKAT","champ":0.07,"playoff":3.99,"projW":3.2,"ppg":107.7,"w":6,"l":8,"ties":0,"pf":1753.48},{"rid":10,"mgr":"SeanOrShawn","team":"Nolo\u2019sDaddy","champ":11.44,"playoff":92.88,"projW":8.18,"ppg":129.23,"w":5,"l":9,"ties":0,"pf":1670.74},{"rid":11,"mgr":"Perez0528","team":"Dawg Pound","champ":1.99,"playoff":29.94,"projW":4.96,"ppg":120.42,"w":8,"l":6,"ties":0,"pf":1798.6},{"rid":12,"mgr":"ConnorLator","team":"FBI\u2019s most wanted","champ":4.3,"playoff":68.75,"projW":6.97,"ppg":121.02,"w":6,"l":8,"ties":0,"pf":1735.82}]},{"week":4,"teams":[{"rid":1,"mgr":"Noloisdaddy","team":"Dont call it a comeback","champ":2.81,"playoff":49.58,"projW":6.2,"ppg":120.46,"w":6,"l":8,"ties":0,"pf":1627.44},{"rid":2,"mgr":"Rosasinlacasa3","team":"Sherlock Mahomes","champ":8.56,"playoff":90.2,"projW":7.95,"ppg":127.7,"w":7,"l":7,"ties":0,"pf":1796.08},{"rid":3,"mgr":"zachgoin","team":"You Nervous?","champ":15.13,"playoff":96.91,"projW":8.92,"ppg":133.52,"w":8,"l":6,"ties":0,"pf":1900.74},{"rid":4,"mgr":"WWEDADDY","team":"COACH ELLISON","champ":25.74,"playoff":99.55,"projW":10.01,"ppg":141.04,"w":10,"l":4,"ties":0,"pf":2034.88},{"rid":5,"mgr":"FrankyP21","team":"Little Johnston","champ":2.44,"playoff":45.84,"projW":5.85,"ppg":120.06,"w":5,"l":9,"ties":0,"pf":1605.94},{"rid":6,"mgr":"RichieRitch","team":"Bishop Sycamore","champ":12.28,"playoff":88.87,"projW":7.66,"ppg":132.13,"w":10,"l":4,"ties":0,"pf":1986.34},{"rid":7,"mgr":"pickadiffrenthobby","team":"I hate sports","champ":4.22,"playoff":55.49,"projW":6.28,"ppg":124.03,"w":6,"l":8,"ties":0,"pf":1789.86},{"rid":8,"mgr":"Cam000","team":"Cry me a Rivers","champ":5.68,"playoff":72.86,"projW":7.06,"ppg":125.38,"w":7,"l":7,"ties":0,"pf":1568.04},{"rid":9,"mgr":"RobMasonHicks","team":"SKAT","champ":0.12,"playoff":6.87,"projW":3.95,"ppg":110.65,"w":6,"l":8,"ties":0,"pf":1753.48},{"rid":10,"mgr":"SeanOrShawn","team":"Nolo\u2019sDaddy","champ":13.84,"playoff":90.84,"projW":7.81,"ppg":133.65,"w":5,"l":9,"ties":0,"pf":1670.74},{"rid":11,"mgr":"Perez0528","team":"Dawg Pound","champ":1.21,"playoff":16.55,"projW":4.31,"ppg":122.31,"w":8,"l":6,"ties":0,"pf":1798.6},{"rid":12,"mgr":"ConnorLator","team":"FBI\u2019s most wanted","champ":7.97,"playoff":86.44,"projW":8.0,"ppg":127.05,"w":6,"l":8,"ties":0,"pf":1735.82}]},{"week":5,"teams":[{"rid":1,"mgr":"Noloisdaddy","team":"Dont call it a comeback","champ":1.86,"playoff":38.6,"projW":5.66,"ppg":122.04,"w":6,"l":8,"ties":0,"pf":1627.44},{"rid":2,"mgr":"Rosasinlacasa3","team":"Sherlock Mahomes","champ":9.23,"playoff":96.34,"projW":8.56,"ppg":130.99,"w":7,"l":7,"ties":0,"pf":1796.08},{"rid":3,"mgr":"zachgoin","team":"You Nervous?","champ":13.23,"playoff":95.85,"projW":8.3,"ppg":135.51,"w":8,"l":6,"ties":0,"pf":1900.74},{"rid":4,"mgr":"WWEDADDY","team":"COACH ELLISON","champ":28.3,"playoff":99.93,"projW":10.64,"ppg":145.81,"w":10,"l":4,"ties":0,"pf":2034.88},{"rid":5,"mgr":"FrankyP21","team":"Little Johnston","champ":1.49,"playoff":33.96,"projW":5.34,"ppg":120.67,"w":5,"l":9,"ties":0,"pf":1605.94},{"rid":6,"mgr":"RichieRitch","team":"Bishop Sycamore","champ":15.31,"playoff":96.14,"projW":8.23,"ppg":137.21,"w":10,"l":4,"ties":0,"pf":1986.34},{"rid":7,"mgr":"pickadiffrenthobby","team":"I hate sports","champ":5.2,"playoff":72.58,"projW":6.89,"ppg":126.96,"w":6,"l":8,"ties":0,"pf":1789.86},{"rid":8,"mgr":"Cam000","team":"Cry me a Rivers","champ":3.52,"playoff":57.74,"projW":6.3,"ppg":125.57,"w":7,"l":7,"ties":0,"pf":1568.04},{"rid":9,"mgr":"RobMasonHicks","team":"SKAT","champ":0.14,"playoff":6.36,"projW":3.82,"ppg":113.49,"w":6,"l":8,"ties":0,"pf":1753.48},{"rid":10,"mgr":"SeanOrShawn","team":"Nolo\u2019sDaddy","champ":13.29,"playoff":93.99,"projW":7.98,"ppg":136.08,"w":5,"l":9,"ties":0,"pf":1670.74},{"rid":11,"mgr":"Perez0528","team":"Dawg Pound","champ":1.92,"playoff":27.65,"projW":4.88,"ppg":125.88,"w":8,"l":6,"ties":0,"pf":1798.6},{"rid":12,"mgr":"ConnorLator","team":"FBI\u2019s most wanted","champ":6.5,"playoff":80.87,"projW":7.38,"ppg":128.73,"w":6,"l":8,"ties":0,"pf":1735.82}]},{"week":6,"teams":[{"rid":1,"mgr":"Noloisdaddy","team":"Dont call it a comeback","champ":1.21,"playoff":30.91,"projW":5.22,"ppg":119.44,"w":6,"l":8,"ties":0,"pf":1627.44},{"rid":2,"mgr":"Rosasinlacasa3","team":"Sherlock Mahomes","champ":8.07,"playoff":98.31,"projW":8.87,"ppg":128.71,"w":7,"l":7,"ties":0,"pf":1796.08},{"rid":3,"mgr":"zachgoin","team":"You Nervous?","champ":13.34,"playoff":98.34,"projW":8.59,"ppg":134.58,"w":8,"l":6,"ties":0,"pf":1900.74},{"rid":4,"mgr":"WWEDADDY","team":"COACH ELLISON","champ":31.74,"playoff":99.99,"projW":11.03,"ppg":147.18,"w":10,"l":4,"ties":0,"pf":2034.88},{"rid":5,"mgr":"FrankyP21","team":"Little Johnston","champ":0.78,"playoff":25.93,"projW":4.94,"ppg":117.52,"w":5,"l":9,"ties":0,"pf":1605.94},{"rid":6,"mgr":"RichieRitch","team":"Bishop Sycamore","champ":16.42,"playoff":98.93,"projW":8.67,"ppg":137.26,"w":10,"l":4,"ties":0,"pf":1986.34},{"rid":7,"mgr":"pickadiffrenthobby","team":"I hate sports","champ":2.61,"playoff":53.31,"projW":6.04,"ppg":122.45,"w":6,"l":8,"ties":0,"pf":1789.86},{"rid":8,"mgr":"Cam000","team":"Cry me a Rivers","champ":3.48,"playoff":70.21,"projW":6.7,"ppg":123.06,"w":7,"l":7,"ties":0,"pf":1568.04},{"rid":9,"mgr":"RobMasonHicks","team":"SKAT","champ":0.19,"playoff":7.65,"projW":3.7,"ppg":115.16,"w":6,"l":8,"ties":0,"pf":1753.48},{"rid":10,"mgr":"SeanOrShawn","team":"Nolo\u2019sDaddy","champ":10.7,"playoff":92.01,"projW":7.45,"ppg":133.13,"w":5,"l":9,"ties":0,"pf":1670.74},{"rid":11,"mgr":"Perez0528","team":"Dawg Pound","champ":2.36,"playoff":29.74,"projW":4.7,"ppg":127.57,"w":8,"l":6,"ties":0,"pf":1798.6},{"rid":12,"mgr":"ConnorLator","team":"FBI\u2019s most wanted","champ":9.1,"playoff":94.69,"projW":8.09,"ppg":130.36,"w":6,"l":8,"ties":0,"pf":1735.82}]},{"week":7,"teams":[{"rid":1,"mgr":"Noloisdaddy","team":"Dont call it a comeback","champ":0.74,"playoff":22.38,"projW":5.0,"ppg":118.22,"w":6,"l":8,"ties":0,"pf":1627.44},{"rid":2,"mgr":"Rosasinlacasa3","team":"Sherlock Mahomes","champ":6.54,"playoff":95.79,"projW":8.15,"ppg":127.1,"w":7,"l":7,"ties":0,"pf":1796.08},{"rid":3,"mgr":"zachgoin","team":"You Nervous?","champ":18.31,"playoff":99.67,"projW":9.15,"ppg":139.08,"w":8,"l":6,"ties":0,"pf":1900.74},{"rid":4,"mgr":"WWEDADDY","team":"COACH ELLISON","champ":31.69,"playoff":100.0,"projW":11.14,"ppg":147.49,"w":10,"l":4,"ties":0,"pf":2034.88},{"rid":5,"mgr":"FrankyP21","team":"Little Johnston","champ":0.88,"playoff":25.24,"projW":4.9,"ppg":119.13,"w":5,"l":9,"ties":0,"pf":1605.94},{"rid":6,"mgr":"RichieRitch","team":"Bishop Sycamore","champ":17.69,"playoff":99.74,"projW":9.21,"ppg":138.23,"w":10,"l":4,"ties":0,"pf":1986.34},{"rid":7,"mgr":"pickadiffrenthobby","team":"I hate sports","champ":4.41,"playoff":74.5,"projW":6.79,"ppg":125.05,"w":6,"l":8,"ties":0,"pf":1789.86},{"rid":8,"mgr":"Cam000","team":"Cry me a Rivers","champ":2.75,"playoff":74.16,"projW":7.06,"ppg":120.46,"w":7,"l":7,"ties":0,"pf":1568.04},{"rid":9,"mgr":"RobMasonHicks","team":"SKAT","champ":0.1,"playoff":4.32,"projW":3.45,"ppg":116.16,"w":6,"l":8,"ties":0,"pf":1753.48},{"rid":10,"mgr":"SeanOrShawn","team":"Nolo\u2019sDaddy","champ":5.46,"playoff":72.88,"projW":6.39,"ppg":128.36,"w":5,"l":9,"ties":0,"pf":1670.74},{"rid":11,"mgr":"Perez0528","team":"Dawg Pound","champ":3.39,"playoff":40.14,"projW":5.17,"ppg":129.13,"w":8,"l":6,"ties":0,"pf":1798.6},{"rid":12,"mgr":"ConnorLator","team":"FBI\u2019s most wanted","champ":8.04,"playoff":91.19,"projW":7.59,"ppg":130.3,"w":6,"l":8,"ties":0,"pf":1735.82}]},{"week":8,"teams":[{"rid":1,"mgr":"Noloisdaddy","team":"Dont call it a comeback","champ":0.35,"playoff":11.07,"projW":4.43,"ppg":116.62,"w":6,"l":8,"ties":0,"pf":1627.44},{"rid":2,"mgr":"Rosasinlacasa3","team":"Sherlock Mahomes","champ":7.69,"playoff":98.18,"projW":8.44,"ppg":128.35,"w":7,"l":7,"ties":0,"pf":1796.08},{"rid":3,"mgr":"zachgoin","team":"You Nervous?","champ":20.6,"playoff":99.9,"projW":9.5,"ppg":140.67,"w":8,"l":6,"ties":0,"pf":1900.74},{"rid":4,"mgr":"WWEDADDY","team":"COACH ELLISON","champ":26.51,"playoff":100.0,"projW":11.08,"ppg":144.12,"w":10,"l":4,"ties":0,"pf":2034.88},{"rid":5,"mgr":"FrankyP21","team":"Little Johnston","champ":0.51,"playoff":16.47,"projW":4.55,"ppg":117.69,"w":5,"l":9,"ties":0,"pf":1605.94},{"rid":6,"mgr":"RichieRitch","team":"Bishop Sycamore","champ":20.14,"playoff":99.95,"projW":9.44,"ppg":139.89,"w":10,"l":4,"ties":0,"pf":1986.34},{"rid":7,"mgr":"pickadiffrenthobby","team":"I hate sports","champ":4.95,"playoff":78.66,"projW":6.78,"ppg":125.98,"w":6,"l":8,"ties":0,"pf":1789.86},{"rid":8,"mgr":"Cam000","team":"Cry me a Rivers","champ":4.26,"playoff":90.27,"projW":7.68,"ppg":123.17,"w":7,"l":7,"ties":0,"pf":1568.04},{"rid":9,"mgr":"RobMasonHicks","team":"SKAT","champ":0.18,"playoff":5.32,"projW":3.49,"ppg":118.86,"w":6,"l":8,"ties":0,"pf":1753.48},{"rid":10,"mgr":"SeanOrShawn","team":"Nolo\u2019sDaddy","champ":3.91,"playoff":62.23,"projW":5.95,"ppg":126.27,"w":5,"l":9,"ties":0,"pf":1670.74},{"rid":11,"mgr":"Perez0528","team":"Dawg Pound","champ":4.69,"playoff":51.93,"projW":5.48,"ppg":129.75,"w":8,"l":6,"ties":0,"pf":1798.6},{"rid":12,"mgr":"ConnorLator","team":"FBI\u2019s most wanted","champ":6.21,"playoff":86.02,"projW":7.18,"ppg":127.6,"w":6,"l":8,"ties":0,"pf":1735.82}]},{"week":9,"teams":[{"rid":1,"mgr":"Noloisdaddy","team":"Dont call it a comeback","champ":0.77,"playoff":20.41,"projW":5.05,"ppg":119.56,"w":6,"l":8,"ties":0,"pf":1627.44},{"rid":2,"mgr":"Rosasinlacasa3","team":"Sherlock Mahomes","champ":6.95,"playoff":96.51,"projW":7.92,"ppg":127.57,"w":7,"l":7,"ties":0,"pf":1796.08},{"rid":3,"mgr":"zachgoin","team":"You Nervous?","champ":21.88,"playoff":99.84,"projW":8.84,"ppg":141.32,"w":8,"l":6,"ties":0,"pf":1900.74},{"rid":4,"mgr":"WWEDADDY","team":"COACH ELLISON","champ":22.78,"playoff":100.0,"projW":10.14,"ppg":141.54,"w":10,"l":4,"ties":0,"pf":2034.88},{"rid":5,"mgr":"FrankyP21","team":"Little Johnston","champ":0.61,"playoff":21.03,"projW":5.09,"ppg":116.32,"w":5,"l":9,"ties":0,"pf":1605.94},{"rid":6,"mgr":"RichieRitch","team":"Bishop Sycamore","champ":19.09,"playoff":100.0,"projW":9.76,"ppg":138.63,"w":10,"l":4,"ties":0,"pf":1986.34},{"rid":7,"mgr":"pickadiffrenthobby","team":"I hate sports","champ":4.88,"playoff":71.12,"projW":6.38,"ppg":126.87,"w":6,"l":8,"ties":0,"pf":1789.86},{"rid":8,"mgr":"Cam000","team":"Cry me a Rivers","champ":2.23,"playoff":64.89,"projW":6.71,"ppg":119.66,"w":7,"l":7,"ties":0,"pf":1568.04},{"rid":9,"mgr":"RobMasonHicks","team":"SKAT","champ":0.43,"playoff":11.62,"projW":4.29,"ppg":119.27,"w":6,"l":8,"ties":0,"pf":1753.48},{"rid":10,"mgr":"SeanOrShawn","team":"Nolo\u2019sDaddy","champ":2.86,"playoff":46.58,"projW":5.58,"ppg":125.94,"w":5,"l":9,"ties":0,"pf":1670.74},{"rid":11,"mgr":"Perez0528","team":"Dawg Pound","champ":7.13,"playoff":70.8,"projW":6.09,"ppg":131.25,"w":8,"l":6,"ties":0,"pf":1798.6},{"rid":12,"mgr":"ConnorLator","team":"FBI\u2019s most wanted","champ":10.4,"playoff":97.19,"projW":8.14,"ppg":131.51,"w":6,"l":8,"ties":0,"pf":1735.82}]},{"week":10,"teams":[{"rid":1,"mgr":"Noloisdaddy","team":"Dont call it a comeback","champ":0.34,"playoff":8.36,"projW":4.6,"ppg":119.54,"w":6,"l":8,"ties":0,"pf":1627.44},{"rid":2,"mgr":"Rosasinlacasa3","team":"Sherlock Mahomes","champ":5.08,"playoff":86.07,"projW":7.07,"ppg":125.96,"w":7,"l":7,"ties":0,"pf":1796.08},{"rid":3,"mgr":"zachgoin","team":"You Nervous?","champ":23.08,"playoff":100.0,"projW":9.24,"ppg":142.71,"w":8,"l":6,"ties":0,"pf":1900.74},{"rid":4,"mgr":"WWEDADDY","team":"COACH ELLISON","champ":21.33,"playoff":100.0,"projW":9.36,"ppg":141.1,"w":10,"l":4,"ties":0,"pf":2034.88},{"rid":5,"mgr":"FrankyP21","team":"Little Johnston","champ":0.8,"playoff":28.79,"projW":5.68,"ppg":117.55,"w":5,"l":9,"ties":0,"pf":1605.94},{"rid":6,"mgr":"RichieRitch","team":"Bishop Sycamore","champ":23.88,"playoff":100.0,"projW":10.15,"ppg":142.39,"w":10,"l":4,"ties":0,"pf":1986.34},{"rid":7,"mgr":"pickadiffrenthobby","team":"I hate sports","champ":5.15,"playoff":65.32,"projW":6.08,"ppg":128.71,"w":6,"l":8,"ties":0,"pf":1789.86},{"rid":8,"mgr":"Cam000","team":"Cry me a Rivers","champ":1.47,"playoff":50.55,"projW":6.51,"ppg":118.14,"w":7,"l":7,"ties":0,"pf":1568.04},{"rid":9,"mgr":"RobMasonHicks","team":"SKAT","champ":0.58,"playoff":16.99,"projW":4.81,"ppg":119.75,"w":6,"l":8,"ties":0,"pf":1753.48},{"rid":10,"mgr":"SeanOrShawn","team":"Nolo\u2019sDaddy","champ":4.32,"playoff":67.31,"projW":6.28,"ppg":126.68,"w":5,"l":9,"ties":0,"pf":1670.74},{"rid":11,"mgr":"Perez0528","team":"Dawg Pound","champ":7.26,"playoff":86.68,"projW":6.77,"ppg":129.48,"w":8,"l":6,"ties":0,"pf":1798.6},{"rid":12,"mgr":"ConnorLator","team":"FBI\u2019s most wanted","champ":6.72,"playoff":89.93,"projW":7.46,"ppg":127.89,"w":6,"l":8,"ties":0,"pf":1735.82}]},{"week":11,"teams":[{"rid":1,"mgr":"Noloisdaddy","team":"Dont call it a comeback","champ":0.9,"playoff":22.09,"projW":5.27,"ppg":120.39,"w":6,"l":8,"ties":0,"pf":1627.44},{"rid":2,"mgr":"Rosasinlacasa3","team":"Sherlock Mahomes","champ":6.85,"playoff":98.48,"projW":7.73,"ppg":127.29,"w":7,"l":7,"ties":0,"pf":1796.08},{"rid":3,"mgr":"zachgoin","team":"You Nervous?","champ":21.48,"playoff":100.0,"projW":9.51,"ppg":141.02,"w":8,"l":6,"ties":0,"pf":1900.74},{"rid":4,"mgr":"WWEDADDY","team":"COACH ELLISON","champ":24.3,"playoff":100.0,"projW":9.85,"ppg":142.31,"w":10,"l":4,"ties":0,"pf":2034.88},{"rid":5,"mgr":"FrankyP21","team":"Little Johnston","champ":0.36,"playoff":15.24,"projW":5.15,"ppg":116.15,"w":5,"l":9,"ties":0,"pf":1605.94},{"rid":6,"mgr":"RichieRitch","team":"Bishop Sycamore","champ":23.35,"playoff":100.0,"projW":9.59,"ppg":141.89,"w":10,"l":4,"ties":0,"pf":1986.34},{"rid":7,"mgr":"pickadiffrenthobby","team":"I hate sports","champ":3.98,"playoff":55.85,"projW":5.66,"ppg":127.74,"w":6,"l":8,"ties":0,"pf":1789.86},{"rid":8,"mgr":"Cam000","team":"Cry me a Rivers","champ":0.8,"playoff":34.22,"projW":6.1,"ppg":115.78,"w":7,"l":7,"ties":0,"pf":1568.04},{"rid":9,"mgr":"RobMasonHicks","team":"SKAT","champ":0.77,"playoff":26.58,"projW":5.29,"ppg":118.69,"w":6,"l":8,"ties":0,"pf":1753.48},{"rid":10,"mgr":"SeanOrShawn","team":"Nolo\u2019sDaddy","champ":3.66,"playoff":61.57,"projW":5.92,"ppg":125.25,"w":5,"l":9,"ties":0,"pf":1670.74},{"rid":11,"mgr":"Perez0528","team":"Dawg Pound","champ":7.46,"playoff":97.79,"projW":7.05,"ppg":128.01,"w":8,"l":6,"ties":0,"pf":1798.6},{"rid":12,"mgr":"ConnorLator","team":"FBI\u2019s most wanted","champ":6.09,"playoff":88.18,"projW":6.88,"ppg":127.41,"w":6,"l":8,"ties":0,"pf":1735.82}]},{"week":12,"teams":[{"rid":1,"mgr":"Noloisdaddy","team":"Dont call it a comeback","champ":0.67,"playoff":17.81,"projW":5.76,"ppg":120.18,"w":6,"l":8,"ties":0,"pf":1627.44},{"rid":2,"mgr":"Rosasinlacasa3","team":"Sherlock Mahomes","champ":5.49,"playoff":91.74,"projW":7.03,"ppg":125.34,"w":7,"l":7,"ties":0,"pf":1796.08},{"rid":3,"mgr":"zachgoin","team":"You Nervous?","champ":20.77,"playoff":100.0,"projW":9.15,"ppg":140.16,"w":8,"l":6,"ties":0,"pf":1900.74},{"rid":4,"mgr":"WWEDADDY","team":"COACH ELLISON","champ":25.37,"playoff":100.0,"projW":10.27,"ppg":142.88,"w":10,"l":4,"ties":0,"pf":2034.88},{"rid":5,"mgr":"FrankyP21","team":"Little Johnston","champ":0.03,"playoff":1.24,"projW":4.64,"ppg":115.96,"w":5,"l":9,"ties":0,"pf":1605.94},{"rid":6,"mgr":"RichieRitch","team":"Bishop Sycamore","champ":22.78,"playoff":100.0,"projW":9.92,"ppg":141.02,"w":10,"l":4,"ties":0,"pf":1986.34},{"rid":7,"mgr":"pickadiffrenthobby","team":"I hate sports","champ":8.03,"playoff":88.25,"projW":6.36,"ppg":129.75,"w":6,"l":8,"ties":0,"pf":1789.86},{"rid":8,"mgr":"Cam000","team":"Cry me a Rivers","champ":1.02,"playoff":52.79,"projW":6.62,"ppg":114.65,"w":7,"l":7,"ties":0,"pf":1568.04},{"rid":9,"mgr":"RobMasonHicks","team":"SKAT","champ":2.86,"playoff":66.49,"projW":6.03,"ppg":122.37,"w":6,"l":8,"ties":0,"pf":1753.48},{"rid":10,"mgr":"SeanOrShawn","team":"Nolo\u2019sDaddy","champ":0.81,"playoff":15.39,"projW":5.23,"ppg":123.9,"w":5,"l":9,"ties":0,"pf":1670.74},{"rid":11,"mgr":"Perez0528","team":"Dawg Pound","champ":5.47,"playoff":84.1,"projW":6.66,"ppg":125.9,"w":8,"l":6,"ties":0,"pf":1798.6},{"rid":12,"mgr":"ConnorLator","team":"FBI\u2019s most wanted","champ":6.68,"playoff":82.18,"projW":6.33,"ppg":128.64,"w":6,"l":8,"ties":0,"pf":1735.82}]},{"week":13,"teams":[{"rid":1,"mgr":"Noloisdaddy","team":"Dont call it a comeback","champ":1.68,"playoff":48.08,"projW":6.39,"ppg":119.48,"w":6,"l":8,"ties":0,"pf":1627.44},{"rid":2,"mgr":"Rosasinlacasa3","team":"Sherlock Mahomes","champ":4.42,"playoff":83.77,"projW":6.54,"ppg":123.82,"w":7,"l":7,"ties":0,"pf":1796.08},{"rid":3,"mgr":"zachgoin","team":"You Nervous?","champ":19.33,"playoff":100.0,"projW":8.62,"ppg":138.42,"w":8,"l":6,"ties":0,"pf":1900.74},{"rid":4,"mgr":"WWEDADDY","team":"COACH ELLISON","champ":26.25,"playoff":100.0,"projW":9.6,"ppg":142.55,"w":10,"l":4,"ties":0,"pf":2034.88},{"rid":5,"mgr":"FrankyP21","team":"Little Johnston","champ":0.06,"playoff":2.58,"projW":5.25,"ppg":114.66,"w":5,"l":9,"ties":0,"pf":1605.94},{"rid":6,"mgr":"RichieRitch","team":"Bishop Sycamore","champ":22.3,"playoff":100.0,"projW":10.4,"ppg":139.75,"w":10,"l":4,"ties":0,"pf":1986.34},{"rid":7,"mgr":"pickadiffrenthobby","team":"I hate sports","champ":5.74,"playoff":73.48,"projW":5.75,"ppg":127.99,"w":6,"l":8,"ties":0,"pf":1789.86},{"rid":8,"mgr":"Cam000","team":"Cry me a Rivers","champ":0.51,"playoff":21.95,"projW":6.22,"ppg":115.0,"w":7,"l":7,"ties":0,"pf":1568.04},{"rid":9,"mgr":"RobMasonHicks","team":"SKAT","champ":4.18,"playoff":84.61,"projW":6.46,"ppg":122.93,"w":6,"l":8,"ties":0,"pf":1753.48},{"rid":10,"mgr":"SeanOrShawn","team":"Nolo\u2019sDaddy","champ":0.0,"playoff":0.0,"projW":4.61,"ppg":121.7,"w":5,"l":9,"ties":0,"pf":1670.74},{"rid":11,"mgr":"Perez0528","team":"Dawg Pound","champ":8.77,"playoff":100.0,"projW":7.38,"ppg":127.63,"w":8,"l":6,"ties":0,"pf":1798.6},{"rid":12,"mgr":"ConnorLator","team":"FBI\u2019s most wanted","champ":6.78,"playoff":85.53,"projW":6.78,"ppg":127.78,"w":6,"l":8,"ties":0,"pf":1735.82}]},{"week":14,"teams":[{"rid":1,"mgr":"Noloisdaddy","team":"Dont call it a comeback","champ":0.0,"playoff":0.0,"projW":6.0,"ppg":117.9,"w":6,"l":8,"ties":0,"pf":1627.44},{"rid":2,"mgr":"Rosasinlacasa3","team":"Sherlock Mahomes","champ":7.06,"playoff":100.0,"projW":7.0,"ppg":126.71,"w":7,"l":7,"ties":0,"pf":1796.08},{"rid":3,"mgr":"zachgoin","team":"You Nervous?","champ":18.62,"playoff":100.0,"projW":8.0,"ppg":135.68,"w":8,"l":6,"ties":0,"pf":1900.74},{"rid":4,"mgr":"WWEDADDY","team":"COACH ELLISON","champ":27.76,"playoff":100.0,"projW":10.0,"ppg":141.9,"w":10,"l":4,"ties":0,"pf":2034.88},{"rid":5,"mgr":"FrankyP21","team":"Little Johnston","champ":0.0,"playoff":0.0,"projW":5.0,"ppg":114.32,"w":5,"l":9,"ties":0,"pf":1605.94},{"rid":6,"mgr":"RichieRitch","team":"Bishop Sycamore","champ":21.15,"playoff":100.0,"projW":10.0,"ppg":139.18,"w":10,"l":4,"ties":0,"pf":1986.34},{"rid":7,"mgr":"pickadiffrenthobby","team":"I hate sports","champ":8.57,"playoff":100.0,"projW":6.0,"ppg":128.2,"w":6,"l":8,"ties":0,"pf":1789.86},{"rid":8,"mgr":"Cam000","team":"Cry me a Rivers","champ":2.25,"playoff":100.0,"projW":7.0,"ppg":115.95,"w":7,"l":7,"ties":0,"pf":1568.04},{"rid":9,"mgr":"RobMasonHicks","team":"SKAT","champ":4.06,"playoff":100.0,"projW":6.0,"ppg":122.01,"w":6,"l":8,"ties":0,"pf":1753.48},{"rid":10,"mgr":"SeanOrShawn","team":"Nolo\u2019sDaddy","champ":0.0,"playoff":0.0,"projW":5.0,"ppg":121.7,"w":5,"l":9,"ties":0,"pf":1670.74},{"rid":11,"mgr":"Perez0528","team":"Dawg Pound","champ":10.54,"playoff":100.0,"projW":8.0,"ppg":128.98,"w":8,"l":6,"ties":0,"pf":1798.6},{"rid":12,"mgr":"ConnorLator","team":"FBI\u2019s most wanted","champ":0.0,"playoff":0.0,"projW":6.0,"ppg":126.59,"w":6,"l":8,"ties":0,"pf":1735.82}]}],"championManager":"WWEDADDY","championTeam":"COACH ELLISON","runnerUpManager":"zachgoin"}}}</script>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="mast-left">
+      <span class="eyebrow" id="eyebrow">Sleeper league &middot; 12 managers</span>
+      <h1 id="league-title">Fooosballl</h1>
+    </div>
+    <div class="mast-right">
+      <div class="mast-stat"><span class="k">Season</span><span class="v" id="m-season">2026</span></div>
+      <div class="mast-stat"><span class="k">Week</span><span class="v" id="m-week">1</span></div>
+      <div class="mast-stat"><span class="k">Playoff field</span><span class="v" id="m-field">8 of 12</span></div>
+      <div class="mast-stat"><span class="k">Simulations</span><span class="v" id="m-sims">25,000</span></div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="favorite">
+      <span class="eyebrow">Title favorite</span>
+      <span class="figure" id="fav-pct">&mdash;</span>
+      <span class="who" id="fav-mgr">&mdash;</span>
+      <span class="team" id="fav-team">&mdash;</span>
+      <dl class="fav-stats" id="fav-stats"></dl>
+      <span class="foot" id="fav-foot"></span>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Odds to win it all</h2>
+        <span class="sub" id="board-sub"></span>
+      </div>
+      <div class="board" id="board"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>How the odds move</h2>
+      <span class="sub">Every team's championship probability, recomputed after each week. Hover the plot for a full readout; click a manager to pin their line.</span>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Season">
+        <button type="button" data-season="2026" aria-pressed="true">2026 &middot; live</button>
+        <button type="button" data-season="2025" aria-pressed="false">2025 &middot; final</button>
+      </div>
+      <span class="hint" id="chart-hint"></span>
+    </div>
+    <div class="plot-wrap" id="plot-wrap">
+      <svg class="plot" id="plot" role="img" aria-label="Championship odds by week for all twelve teams"></svg>
+      <div class="tip" id="tip" aria-hidden="true"></div>
+      <div class="empty-note" id="empty-note" hidden></div>
+    </div>
+    <div class="legend" id="legend" aria-label="Teams &mdash; click to pin a line"></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Team by team</h2>
+      <span class="sub">The same curves, one panel each. The grey band is the spread between the league's best and worst odds that week, so every panel shares one scale.</span>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section class="card" id="decisions-card" hidden>
+    <div class="card-head">
+      <h2>Decisions</h2>
+      <span class="sub">Every add, drop, waiver claim and trade, graded by what it does to that roster's expected points and to their playoff and title odds. Zeroes mean the move swapped replacement-level pieces &mdash; free, but not consequential.</span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Wk</th>
+            <th scope="col">Manager</th>
+            <th scope="col">Move</th>
+            <th scope="col">Type</th>
+            <th scope="col">&Delta; pts/wk</th>
+            <th scope="col">&Delta; title</th>
+            <th scope="col">Grade</th>
+          </tr>
+        </thead>
+        <tbody id="grades-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Full table</h2>
+      <span class="sub" id="table-sub"></span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Manager</th>
+            <th scope="col">Team</th>
+            <th scope="col">Record</th>
+            <th scope="col">Points for</th>
+            <th scope="col">Proj. wins</th>
+            <th scope="col">Weekly avg</th>
+            <th scope="col">Playoffs</th>
+            <th scope="col">Title</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>How these numbers are made</h2></div>
+    <div class="method">
+      <div class="method-body">
+        <p>These are not Sleeper's numbers &mdash; Sleeper doesn't publish championship odds. They come from
+        simulating the rest of your season <strong id="m-sims-2">25,000</strong> times and counting how
+        often each team ends up holding the trophy.</p>
+        <p>Everything describing <em>this</em> season comes from this season: projections, rosters,
+        injuries, the real schedule and the real bye weeks. Everything describing the scoring
+        environment &mdash; the league's weekly average, how volatile scoring is, how far apart teams
+        genuinely are &mdash; is measured from this league's own history rather than assumed.</p>
+      </div>
+      <ul class="method-list" style="margin-top:18px">
+        <li><span class="term">Team strength</span><span>Every rostered player's Sleeper season projection, scored with <strong>your league's own scoring settings</strong> rather than generic PPR, then the best legal lineup each week.</span></li>
+        <li><span class="term">Randomness</span><span>Weekly scores drawn around that mean with a standard deviation of <strong id="m-sd">22.5</strong> points, measured from <span id="m-calib">your league's own previous season</span> rather than assumed, and rescaled if this season is scoring higher or lower.</span></li>
+        <li><span class="term">Bye weeks</span><span>Each week's lineup is rebuilt with players whose NFL team is on bye removed. A slot nobody on the roster can cover falls to what a manager could stream off waivers, not to zero.</span></li>
+        <li><span class="term">Kickers and defences</span><span>Sleeper's projections for these two positions are missing whole scoring categories &mdash; no points-allowed tiers, no field goals under 40 yards &mdash; so both are recalibrated against what they actually scored in your league last season.</span></li>
+        <li><span class="term">Schedule</span><span>The actual head-to-head schedule Sleeper has already published for weeks 1&ndash;14, not a generic round robin.</span></li>
+        <li><span class="term">Playoffs</span><span>Top 8 by record then points for, seeded into the real three-round bracket starting week 15.</span></li>
+        <li><span class="term">Injuries</span><span>Players Sleeper lists as out, IR or PUP are dropped from a team's expected lineup, so the slot falls to the next body on the roster. Questionable and doubtful still count in full.</span></li>
+        <li><span class="term">Live weeks</span><span>A week only counts as a result once every NFL game in it is final. Mid-week, points already scored are banked and only the players whose game hasn't kicked off are simulated.</span></li>
+        <li><span class="term">Injury luck</span><span>Every impactful player carries a weekly chance of missing time, measured from who actually missed weeks across the 2024 and 2025 NFL seasons, refined by age and injury tags. When a simulated injury fires, that roster loses that player's marginal value for a sampled recovery &mdash; so a star with no backup hurts more than a star with a handcuff.</span></li>
+        <li><span class="term">Breakouts and busts</span><span>Each player's true level is drawn fresh every simulated season, with more uncertainty for younger players &mdash; so an unproven second-year receiver genuinely goes off in some seasons and disappears in others.</span></li>
+        <li><span class="term">What it can't know</span><span>Whatever the named-player events don't explain remains as team-level uncertainty and week-to-week drift. That keeps the model honest instead of declaring anyone dead in September.</span></li>
+        <li><span class="term">As results land</span><span>Games played become fact, and each team's actual scoring average progressively outweighs its preseason projection.</span></li>
+      </ul>
+      <div class="caveat" id="caveat"></div>
+    </div>
+  </section>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var DATA = JSON.parse(document.getElementById("odds-data").textContent);
+  var SEASONS = DATA.seasons;
+  var PIN_SLOTS = ["--s1", "--s2", "--s3"];
+  var MAX_PINS = 3;
+
+  var state = { season: "2026", pins: [], hover: null };
+
+  function css(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+  function el(tag, attrs, text) {
+    var n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (var k in attrs) { if (attrs[k] !== null) n.setAttribute(k, attrs[k]); }
+    if (text !== undefined) { n.textContent = text; }
+    return n;
+  }
+  function div(cls, text) {
+    var n = document.createElement("div");
+    if (cls) { n.className = cls; }
+    if (text !== undefined) { n.textContent = text; }
+    return n;
+  }
+  function pct(v) { return v.toFixed(1) + "%"; }
+  function weekLabel(w) { return w === 0 ? "Pre" : "Wk " + w; }
+
+  function statusLine(s) {
+    var partial = (s.partialWeeks || [])[0];
+    if (partial) {
+      var bits = "Week " + partial + " in progress. Points already scored are banked";
+      if (s.pendingStarters) {
+        bits += "; " + s.pendingStarters + " starter" +
+          (s.pendingStarters === 1 ? "" : "s") + " across " + s.pendingTeams +
+          " team" + (s.pendingTeams === 1 ? "" : "s") + " still to play";
+      }
+      return bits + ".";
+    }
+    if (s.weeksPlayed === 0) {
+      return "Preseason. No games have been played, so this is roster strength alone.";
+    }
+    return "Through week " + s.weeksPlayed + ", with the rest of the season simulated.";
+  }
+
+  function season() { return SEASONS[state.season]; }
+  function defaultPin() {
+    var teams = latest().teams.slice().sort(function (a, b) { return b.champ - a.champ; });
+    return teams.length ? [teams[0].mgr] : [];
+  }
+  function latest() { var s = season(); return s.snapshots[s.snapshots.length - 1]; }
+  function managers() {
+    return latest().teams.map(function (t) { return t.mgr; });
+  }
+  function seriesFor(mgr) {
+    return season().snapshots.map(function (s) {
+      var row = null;
+      for (var i = 0; i < s.teams.length; i++) { if (s.teams[i].mgr === mgr) { row = s.teams[i]; } }
+      return { week: s.week, v: row ? row.champ : 0 };
+    });
+  }
+  function pinColor(mgr) {
+    var i = state.pins.indexOf(mgr);
+    return i === -1 ? null : css(PIN_SLOTS[i]);
+  }
+  function yMax() {
+    var m = 0;
+    season().snapshots.forEach(function (s) {
+      s.teams.forEach(function (t) { if (t.champ > m) { m = t.champ; } });
+    });
+    return Math.max(20, Math.ceil(m / 10) * 10);
+  }
+
+  /* ---------------- masthead + hero ---------------- */
+  function renderHead() {
+    var live = SEASONS["2026"];
+    var snap = live.snapshots[live.snapshots.length - 1];
+    document.getElementById("league-title").textContent = DATA.leagueName;
+    document.getElementById("m-season").textContent = live.season;
+    document.getElementById("m-week").textContent = String(Math.max(1, live.asOf));
+    document.getElementById("m-field").textContent = live.playoffTeams + " of " + snap.teams.length;
+    document.getElementById("m-sims").textContent = DATA.sims.toLocaleString();
+    document.getElementById("m-sims-2").textContent = DATA.sims.toLocaleString();
+    document.getElementById("m-sd").textContent = String(DATA.weeklySd);
+    var mdl = DATA.model || {};
+    var calibEl = document.getElementById("m-calib");
+    if (calibEl && mdl.calibratedFrom) {
+      calibEl.textContent = "your league's " + mdl.calibratedFrom + " season";
+    }
+    document.getElementById("eyebrow").textContent =
+      "Sleeper league \u00b7 " + snap.teams.length + " managers \u00b7 " + live.regWeeks + "-week regular season";
+
+    var ranked = snap.teams.slice().sort(function (a, b) { return b.champ - a.champ; });
+    var top = ranked[0];
+    document.getElementById("fav-pct").textContent = pct(top.champ);
+    document.getElementById("fav-mgr").textContent = top.mgr;
+    document.getElementById("fav-team").textContent = top.team;
+    var fs = document.getElementById("fav-stats");
+    fs.textContent = "";
+    [["Playoff odds", pct(top.playoff)],
+     ["Projected wins", top.projW.toFixed(1)],
+     ["Points a week", top.ppg.toFixed(1)],
+     ["Next best", ranked[1].mgr]].forEach(function (pair) {
+      var row = document.createElement("div");
+      var dt = document.createElement("dt");
+      dt.textContent = pair[0];
+      var dd = document.createElement("dd");
+      dd.textContent = pair[1];
+      row.appendChild(dt); row.appendChild(dd); fs.appendChild(row);
+    });
+
+    document.getElementById("fav-foot").textContent =
+      "Projected " + top.projW.toFixed(1) + " wins and " + top.ppg.toFixed(1) +
+      " points a week \u2014 the strongest roster on paper, and " +
+      (top.champ / ranked[ranked.length - 1].champ).toFixed(1) +
+      "\u00d7 the last-place team's shot at the title.";
+
+    document.getElementById("board-sub").textContent = statusLine(live);
+
+    var board = document.getElementById("board");
+    board.textContent = "";
+    var max = ranked[0].champ;
+    ranked.forEach(function (t, i) {
+      var row = div("board-row" + (i === 0 ? " lead" : ""));
+      row.appendChild(div("board-rank", String(i + 1)));
+      var name = div("board-name");
+      name.appendChild(div("board-mgr", t.mgr));
+      name.appendChild(div("board-team", t.team || "\u2014"));
+      row.appendChild(name);
+      var track = div("board-track");
+      var fill = div("board-fill");
+      fill.style.width = (t.champ / max * 100).toFixed(1) + "%";
+      track.appendChild(fill);
+      row.appendChild(track);
+      row.appendChild(div("board-pct", pct(t.champ)));
+      board.appendChild(row);
+    });
+  }
+
+  /* ---------------- main line chart ---------------- */
+  var PAD = { t: 18, r: 82, b: 48, l: 44 };
+
+  function renderChart() {
+    var svg = document.getElementById("plot");
+    var wrap = document.getElementById("plot-wrap");
+    var s = season();
+    var width = Math.max(320, wrap.clientWidth - 24);
+    var height = s.snapshots.length < 2 ? 300 : 400;
+    svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+    svg.setAttribute("height", height);
+    svg.textContent = "";
+
+    var lastWeek = s.regWeeks;
+    var top = yMax();
+    var iw = width - PAD.l - PAD.r;
+    var ih = height - PAD.t - PAD.b;
+    var x = function (w) { return PAD.l + (w / lastWeek) * iw; };
+    var y = function (v) { return PAD.t + ih - (v / top) * ih; };
+
+    var muted = css("--ink-3"), rule = css("--rule"), axis = css("--rule-strong");
+    var recessive = css("--recessive"), ink = css("--ink");
+
+    /* y grid */
+    for (var g = 0; g <= top; g += 10) {
+      svg.appendChild(el("line", {
+        x1: PAD.l, x2: PAD.l + iw, y1: y(g), y2: y(g),
+        stroke: g === 0 ? axis : rule, "stroke-width": 1
+      }));
+      svg.appendChild(el("text", {
+        x: PAD.l - 9, y: y(g) + 4, "text-anchor": "end",
+        "font-size": 11, fill: muted
+      }, g + "%"));
+    }
+
+    /* x ticks */
+    for (var w = 0; w <= lastWeek; w++) {
+      if (w !== 0 && w % 2 !== 0) { continue; }
+      svg.appendChild(el("text", {
+        x: x(w), y: PAD.t + ih + 19, "text-anchor": "middle",
+        "font-size": 11, fill: muted
+      }, w === 0 ? "Pre" : String(w)));
+    }
+    svg.appendChild(el("text", {
+      x: PAD.l + iw / 2, y: height - 8, "text-anchor": "middle",
+      "font-size": 10, fill: muted, "letter-spacing": "0.09em"
+    }, "REGULAR SEASON WEEK"));
+
+    var mgrs = managers();
+    var single = s.snapshots.length < 2;
+
+    /* recessive layer first, emphasised layer on top */
+    var pinned = [], hot = null;
+    mgrs.forEach(function (mgr) {
+      var pts = seriesFor(mgr);
+      var isPin = state.pins.indexOf(mgr) !== -1;
+      var isHot = state.hover === mgr;
+      if (isPin) { pinned.push(mgr); }
+      if (isHot) { hot = mgr; }
+      if (isPin || isHot) { return; }
+      drawSeries(svg, pts, x, y, recessive, 1.5, single, 0.85);
+    });
+    pinned.forEach(function (mgr) {
+      if (mgr === hot) { return; }
+      drawSeries(svg, seriesFor(mgr), x, y, pinColor(mgr), 2, single, 1);
+      labelEnd(svg, seriesFor(mgr), x, y, pinColor(mgr), mgr, width);
+    });
+    if (hot) {
+      var c = pinColor(hot) || ink;
+      drawSeries(svg, seriesFor(hot), x, y, c, 2.5, single, 1);
+      labelEnd(svg, seriesFor(hot), x, y, c, hot, width);
+    }
+
+    /* crosshair + hit layer */
+    var cross = el("line", {
+      x1: 0, x2: 0, y1: PAD.t, y2: PAD.t + ih,
+      stroke: axis, "stroke-width": 1, opacity: 0
+    });
+    svg.appendChild(cross);
+    var hit = el("rect", {
+      x: PAD.l, y: PAD.t, width: iw, height: ih, fill: "transparent"
+    });
+    svg.appendChild(hit);
+
+    var weeks = s.snapshots.map(function (n) { return n.week; });
+    function onMove(ev) {
+      var box = svg.getBoundingClientRect();
+      var px = (ev.clientX - box.left) * (width / box.width);
+      var wRaw = (px - PAD.l) / iw * lastWeek;
+      var near = weeks[0], best = Infinity;
+      weeks.forEach(function (wk) {
+        var d = Math.abs(wk - wRaw);
+        if (d < best) { best = d; near = wk; }
+      });
+      cross.setAttribute("x1", x(near));
+      cross.setAttribute("x2", x(near));
+      cross.setAttribute("opacity", 1);
+      showTip(near, x(near), box, width);
+    }
+    hit.addEventListener("pointermove", onMove);
+    hit.addEventListener("pointerleave", function () {
+      cross.setAttribute("opacity", 0);
+      document.getElementById("tip").classList.remove("on");
+    });
+
+    var note = document.getElementById("empty-note");
+    if (single) {
+      note.hidden = false;
+      note.textContent = s.state === "live"
+        ? statusLine(s) + " One week plotted so far \u2014 the curve extends by a point every week you rerun the script."
+        : "Only one snapshot available for this season.";
+    } else {
+      note.hidden = true;
+    }
+
+    document.getElementById("chart-hint").textContent = single
+      ? ((s.partialWeeks || []).length ? "Week " + s.partialWeeks[0] + " in progress"
+                                       : "Preseason") +
+        " \u2014 1 of " + (s.regWeeks + 1) + " points plotted"
+      : (s.snapshots.length + " weekly snapshots \u00b7 " +
+         (s.championManager ? s.championManager + " won the title" : ""));
+  }
+
+  function drawSeries(svg, pts, x, y, color, w, single, opacity) {
+    if (single) {
+      pts.forEach(function (p) {
+        svg.appendChild(el("circle", {
+          cx: x(p.week), cy: y(p.v), r: w > 1.8 ? 5 : 4,
+          fill: color, opacity: opacity
+        }));
+      });
+      return;
+    }
+    var d = pts.map(function (p, i) {
+      return (i === 0 ? "M" : "L") + x(p.week).toFixed(1) + " " + y(p.v).toFixed(1);
+    }).join(" ");
+    svg.appendChild(el("path", {
+      d: d, fill: "none", stroke: color, "stroke-width": w,
+      "stroke-linejoin": "round", "stroke-linecap": "round", opacity: opacity
+    }));
+  }
+
+  function labelEnd(svg, pts, x, y, color, mgr, width) {
+    var p = pts[pts.length - 1];
+    var lx = Math.min(x(p.week) + 8, width - PAD.r + 6);
+    svg.appendChild(el("circle", {
+      cx: x(p.week), cy: y(p.v), r: 3.5, fill: color,
+      stroke: css("--surface"), "stroke-width": 2
+    }));
+    svg.appendChild(el("text", {
+      x: lx, y: y(p.v) - 6, "font-size": 11, "font-weight": 600,
+      fill: css("--ink")
+    }, mgr.length > 12 ? mgr.slice(0, 12) + "\u2026" : mgr));
+    svg.appendChild(el("text", {
+      x: lx, y: y(p.v) + 7, "font-size": 11, fill: css("--ink-2")
+    }, pct(p.v)));
+  }
+
+  function showTip(week, px, box, width) {
+    var tip = document.getElementById("tip");
+    var s = season();
+    var snap = null;
+    s.snapshots.forEach(function (n) { if (n.week === week) { snap = n; } });
+    if (!snap) { return; }
+
+    tip.textContent = "";
+    var head = div("tip-head", weekLabel(week) + " \u00b7 " + s.season);
+    tip.appendChild(head);
+
+    snap.teams.slice().sort(function (a, b) { return b.champ - a.champ; })
+      .forEach(function (t) {
+        var isPin = state.pins.indexOf(t.mgr) !== -1;
+        var isHot = state.hover === t.mgr;
+        var row = div("tip-row" + (isPin || isHot ? " hot" : ""));
+        var key = div("tip-key");
+        key.style.background = isPin ? pinColor(t.mgr) : (isHot ? css("--ink") : css("--recessive"));
+        row.appendChild(key);
+        row.appendChild(div("tip-name", t.mgr));
+        row.appendChild(div("tip-val", pct(t.champ)));
+        tip.appendChild(row);
+      });
+
+    tip.classList.add("on");
+    var scale = box.width / width;
+    var left = px * scale + 18;
+    if (left + tip.offsetWidth > box.width - 4) { left = px * scale - tip.offsetWidth - 18; }
+    tip.style.left = Math.max(4, left) + "px";
+    tip.style.top = "14px";
+  }
+
+  /* ---------------- legend ---------------- */
+  function renderLegend() {
+    var legend = document.getElementById("legend");
+    legend.textContent = "";
+    latest().teams.slice().sort(function (a, b) { return b.champ - a.champ; })
+      .forEach(function (t) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "chip";
+        var pinned = state.pins.indexOf(t.mgr) !== -1;
+        b.setAttribute("aria-pressed", pinned ? "true" : "false");
+        var sw = document.createElement("span");
+        sw.className = "swatch";
+        if (pinned) { sw.style.background = pinColor(t.mgr); }
+        b.appendChild(sw);
+        b.appendChild(document.createTextNode(t.mgr));
+        b.addEventListener("click", function () { togglePin(t.mgr); });
+        b.addEventListener("pointerenter", function () { state.hover = t.mgr; renderChart(); });
+        b.addEventListener("pointerleave", function () { state.hover = null; renderChart(); });
+        b.addEventListener("focus", function () { state.hover = t.mgr; renderChart(); });
+        b.addEventListener("blur", function () { state.hover = null; renderChart(); });
+        legend.appendChild(b);
+      });
+  }
+
+  function togglePin(mgr) {
+    var i = state.pins.indexOf(mgr);
+    if (i !== -1) { state.pins.splice(i, 1); }
+    else {
+      if (state.pins.length >= MAX_PINS) { state.pins.shift(); }
+      state.pins.push(mgr);
+    }
+    renderLegend();
+    renderChart();
+  }
+
+  /* ---------------- small multiples ---------------- */
+  function renderGrid() {
+    var grid = document.getElementById("grid");
+    grid.textContent = "";
+    var s = season();
+    var top = yMax();
+    var W = 160, H = 62, single = s.snapshots.length < 2;
+    var lastWeek = s.regWeeks;
+    var all = managers().map(function (m) { return seriesFor(m); });
+    var band = [];
+    if (!single) {
+      s.snapshots.forEach(function (n) {
+        var lo = Infinity, hi = -Infinity;
+        n.teams.forEach(function (t) {
+          if (t.champ < lo) { lo = t.champ; }
+          if (t.champ > hi) { hi = t.champ; }
+        });
+        band.push({ week: n.week, lo: lo, hi: hi });
+      });
+    }
+
+    latest().teams.slice().sort(function (a, b) { return b.champ - a.champ; })
+      .forEach(function (t) {
+        var panel = div("panel");
+        panel.appendChild(div("panel-mgr", t.mgr));
+        panel.appendChild(div("panel-val", pct(t.champ) + " \u00b7 " + t.w + "-" + t.l + "-" + t.ties));
+
+        var svg = el("svg", { viewBox: "0 0 " + W + " " + H, preserveAspectRatio: "none" });
+        svg.setAttribute("aria-hidden", "true");
+        var x = function (w) { return 2 + (w / lastWeek) * (W - 4); };
+        var y = function (v) { return H - 4 - (v / top) * (H - 8); };
+
+        svg.appendChild(el("line", {
+          x1: 0, x2: W, y1: y(0), y2: y(0), stroke: css("--rule"), "stroke-width": 1
+        }));
+        if (band.length) {
+          var bandTop = band.map(function (b, i) {
+            return (i === 0 ? "M" : "L") + x(b.week).toFixed(1) + " " + y(b.hi).toFixed(1);
+          }).join(" ");
+          var bandBottom = band.slice().reverse().map(function (b) {
+            return "L" + x(b.week).toFixed(1) + " " + y(b.lo).toFixed(1);
+          }).join(" ");
+          svg.appendChild(el("path", {
+            d: bandTop + " " + bandBottom + " Z", fill: css("--recessive"),
+            opacity: 0.4, stroke: "none"
+          }));
+        } else {
+          all.forEach(function (pts) {
+            drawSeries(svg, pts, x, y, css("--recessive"), 1, single, 0.55);
+          });
+        }
+        drawSeries(svg, seriesFor(t.mgr), x, y, css("--accent"), 1.75, single, 1);
+        panel.appendChild(svg);
+        grid.appendChild(panel);
+      });
+  }
+
+  /* ---------------- table ---------------- */
+  function renderTable() {
+    var tbody = document.getElementById("tbody");
+    tbody.textContent = "";
+    var s = season();
+    var snap = latest();
+    document.getElementById("table-sub").textContent =
+      s.state === "live"
+        ? "Current standing of the " + s.season + " season, with everything the simulation produced."
+        : s.season + " as of the end of the regular season, before the bracket was played.";
+
+    snap.teams.slice().sort(function (a, b) { return b.champ - a.champ; })
+      .forEach(function (t, i) {
+        var tr = document.createElement("tr");
+        function cell(text, cls) {
+          var td = document.createElement("td");
+          td.textContent = text;
+          if (cls) { td.className = cls; }
+          tr.appendChild(td);
+        }
+        cell(String(i + 1), "num dim");
+        cell(t.mgr, "mgr");
+        cell(t.team || "\u2014", "dim");
+        cell(t.w + "-" + t.l + "-" + t.ties, "num");
+        cell(t.pf.toFixed(2), "num");
+        cell(t.projW.toFixed(1), "num");
+        cell(t.ppg.toFixed(1), "num");
+        cell(pct(t.playoff), "num");
+        cell(pct(t.champ), "num");
+        tbody.appendChild(tr);
+      });
+  }
+
+  /* ---------------- decisions ---------------- */
+  function renderGrades() {
+    var rows = DATA.grades || [];
+    var card = document.getElementById("decisions-card");
+    if (!rows.length) { card.hidden = true; return; }
+    card.hidden = false;
+    var tbody = document.getElementById("grades-tbody");
+    tbody.textContent = "";
+    rows.slice().sort(function (a, b) {
+      return (b.created || "").localeCompare(a.created || "");
+    }).forEach(function (r) {
+      var tr = document.createElement("tr");
+      function cell(cls) {
+        var td = document.createElement("td");
+        if (cls) { td.className = cls; }
+        tr.appendChild(td);
+        return td;
+      }
+      cell("num dim").textContent = r.week != null ? String(r.week) : "";
+      cell("mgr").textContent = r.mgr || "";
+      var mv = cell("move");
+      if (r.adds && r.adds.length) {
+        mv.appendChild(document.createTextNode("+ " + r.adds.join(", ")));
+      }
+      if (r.drops && r.drops.length) {
+        if (mv.childNodes.length) { mv.appendChild(document.createElement("br")); }
+        var minus = document.createElement("span");
+        minus.className = "minus";
+        minus.textContent = "\u2212 " + r.drops.join(", ");
+        mv.appendChild(minus);
+      }
+      if (r.verdict) {
+        mv.appendChild(document.createElement("br"));
+        var v = document.createElement("span");
+        v.className = "minus";
+        v.textContent = r.verdict;
+        mv.appendChild(v);
+      }
+      cell("dim").textContent = r.type === "free_agent" ? "free agent" : (r.type || "");
+      var dp = cell("num");
+      dp.textContent = (r.dPpg > 0 ? "+" : "") + (r.dPpg != null ? r.dPpg.toFixed(2) : "");
+      var dt = cell("num");
+      dt.textContent = (r.dTitle > 0 ? "+" : "") +
+        (r.dTitle != null ? r.dTitle.toFixed(2) + "pp" : "");
+      var gc = cell("num");
+      var chip = document.createElement("span");
+      chip.className = "grade-chip" +
+        (/^A/.test(r.grade) || r.grade === "B+" ? " good" :
+         (/^[DF]/.test(r.grade) ? " bad" : ""));
+      chip.textContent = r.grade || "";
+      gc.appendChild(chip);
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ---------------- caveat + footer ---------------- */
+  function renderNotes() {
+    var live = SEASONS["2026"], past = SEASONS["2025"];
+    var pastFirst = past.snapshots[1];
+    var leader = pastFirst
+      ? pastFirst.teams.slice().sort(function (a, b) { return b.champ - a.champ; })[0]
+      : null;
+
+    var sameWinner = leader && leader.mgr === past.championManager;
+    var opener = (live.partialWeeks || []).length
+      ? "Week " + live.partialWeeks[0] + " is still being played, so points already on the board " +
+        "count as fact and only the players yet to kick off are simulated. Records stay 0-0 until " +
+        "Sleeper settles the week. "
+      : "Every team is 0-0, so the model is reading rosters rather than results. ";
+    var text = opener + "Either way the spread is modest this early. For scale: after week 1 of " +
+      past.season + " the model's favorite was " +
+      (leader ? leader.mgr + " at " + pct(leader.champ) : "unclear") +
+      (sameWinner ? ", and they went on to win it." :
+        ", and " + past.championManager + " won it instead.");
+    document.getElementById("caveat").textContent = text;
+
+    var when = new Date(DATA.generatedAt);
+    document.getElementById("footer").textContent =
+      "Generated " + when.toISOString().slice(0, 10) + " UTC from the Sleeper API \u00b7 " +
+      "rerun fetch_sleeper.py then simulate_odds.py to refresh \u00b7 " +
+      live.regWeeks + "-week season, top " + live.playoffTeams + " make the bracket at week " +
+      live.playoffStart + ".";
+  }
+
+  /* ---------------- wiring ---------------- */
+  document.querySelectorAll(".seg button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      state.season = b.dataset.season;
+      state.hover = null;
+      state.pins = defaultPin();
+      document.querySelectorAll(".seg button").forEach(function (o) {
+        o.setAttribute("aria-pressed", o === b ? "true" : "false");
+      });
+      renderLegend();
+      renderChart();
+      renderGrid();
+      renderTable();
+    });
+  });
+
+  var resizeTimer = null;
+  window.addEventListener("resize", function () {
+    if (resizeTimer) { clearTimeout(resizeTimer); }
+    resizeTimer = setTimeout(renderChart, 120);
+  });
+  var onTheme = function () { renderChart(); renderGrid(); renderLegend(); };
+  if (window.matchMedia) {
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    if (mq.addEventListener) { mq.addEventListener("change", onTheme); }
+  }
+  if (window.MutationObserver) {
+    new MutationObserver(onTheme).observe(document.documentElement, {
+      attributes: true, attributeFilter: ["data-theme", "class", "style"]
+    });
+  }
+
+  renderHead();
+  state.pins = defaultPin();
+  renderLegend();
+  renderChart();
+  renderGrid();
+  renderTable();
+  renderGrades();
+  renderNotes();
+})();
+</script>
+
+</body>
+</html>
