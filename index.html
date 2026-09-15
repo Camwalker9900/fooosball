@@ -1623,6 +1623,17 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
   }
 
   var suggestSeen = {};
+  try {
+    var storedSeen = localStorage.getItem("fooosball-suggest-seen");
+    if (storedSeen) { suggestSeen = JSON.parse(storedSeen) || {}; }
+  } catch (e) { /* storage unavailable: session-only memory */ }
+  var suggestExhausted = false;
+  function rememberSeen() {
+    try {
+      localStorage.setItem("fooosball-suggest-seen",
+                           JSON.stringify(suggestSeen));
+    } catch (e) { /* fine */ }
+  }
   function suggestTrade() {
     if (tradeBusy) { return; }
     var status = document.getElementById("trade-status");
@@ -1721,11 +1732,25 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
         if (!suggestSeen[key]) { pick = candidates[c]; rank = c + 1; break; }
       }
       if (!pick) {
-        suggestSeen = {};
-        pick = candidates[0];
-        rank = 1;
+        setTradeBusy(false);
+        if (suggestExhausted) {
+          // explicit second press: restart the cycle from the top
+          suggestSeen = {};
+          rememberSeen();
+          suggestExhausted = false;
+          status.textContent = "STARTING THE LIST OVER...";
+          setTimeout(suggestTrade, 200);
+        } else {
+          suggestExhausted = true;
+          status.textContent = "ALL " + candidates.length +
+            " WIN-WIN(S) IN THIS SCOPE SHOWN -- PRESS AGAIN TO START OVER, " +
+            "OR WIDEN THE SCOPE";
+        }
+        return;
       }
+      suggestExhausted = false;
       suggestSeen[pick.pa + ":" + pick.pb] = 1;
+      rememberSeen();
       var selA = document.getElementById("trade-a");
       var selB = document.getElementById("trade-b");
       selA.value = String(pick.ra); selA.dispatchEvent(new Event("change"));
