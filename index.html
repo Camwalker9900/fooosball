@@ -46,6 +46,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 
 body {
   margin: 0;
@@ -306,6 +307,10 @@ button.trade-head {
 button.trade-head:focus-visible { outline: 3px solid var(--s3); outline-offset: -3px; }
 .chev { display: inline-block; color: var(--accent); }
 .trade-head[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.section-head.collapsible { cursor: pointer; user-select: none; }
+.section-head.collapsible:focus-visible { outline: 3px solid var(--s3); outline-offset: -3px; }
+.section-head.collapsible[aria-expanded="true"] .chev { transform: rotate(180deg); }
+#report-toggle .sub { max-width: none; }
 .trade-hintline { padding: 12px 18px 16px; font-size: 17px; color: var(--ink-3); }
 .trade-body {
   display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
@@ -340,6 +345,10 @@ button.trade-head:focus-visible { outline: 3px solid var(--s3); outline-offset: 
 }
 .trade-go:active { transform: translate(3px,3px); box-shadow: none; }
 .trade-go:disabled { background: var(--panel-2); color: var(--ink-3); cursor: default; }
+.trade-suggest { background: var(--panel-2); color: var(--accent); }
+.tp-players { font-size: 15px; line-height: 1.35; margin: 4px 0 8px; }
+.tp-players .lbl { color: var(--ink-3); }
+.tp-players .who2 { color: var(--ink); }
 .trade-result { border-top: 3px solid var(--line); }
 .trade-verdict {
   padding: 14px 18px; font-size: 12px; color: var(--accent);
@@ -469,11 +478,13 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
   <div class="movers" id="movers" hidden></div>
 
   <section class="card" id="report-card" hidden>
-    <div class="section-head">
+    <button type="button" class="section-head trade-head" id="report-toggle" aria-expanded="false">
       <h2 id="report-title">WEEKLY REPORT</h2>
-      <span class="sub" id="report-lede"></span>
+      <span class="sub"><span id="report-lede"></span> <span class="chev">&#9662;</span></span>
+    </button>
+    <div id="report-inner" hidden>
+      <div class="report-list" id="report-list"></div>
     </div>
-    <div class="report-list" id="report-list"></div>
   </section>
 
   <section class="card" id="matchups-card" hidden>
@@ -518,6 +529,7 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
     </div>
     <div class="trade-actions">
       <button type="button" class="trade-go px" id="trade-go">EVALUATE TRADE</button>
+      <button type="button" class="trade-go trade-suggest px" id="trade-suggest">SUGGEST TRADE</button>
       <span class="hint" id="trade-status"></span>
     </div>
     <div class="trade-result" id="trade-result" hidden>
@@ -974,7 +986,16 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
     document.getElementById("report-title").textContent =
       "WEEK " + rep.week + " REPORT";
     document.getElementById("report-lede").textContent =
-      (rep.headline || "").toUpperCase();
+      (rep.headline || "").toUpperCase() + " \u00b7 TAP FOR THE FULL ROAST";
+    var rToggle = document.getElementById("report-toggle");
+    if (!rToggle.dataset.wired) {
+      rToggle.dataset.wired = "1";
+      rToggle.addEventListener("click", function () {
+        var inner = document.getElementById("report-inner");
+        inner.hidden = !inner.hidden;
+        rToggle.setAttribute("aria-expanded", inner.hidden ? "false" : "true");
+      });
+    }
     var list = document.getElementById("report-list");
     list.textContent = "";
     if (rep.lede) {
@@ -1481,6 +1502,7 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
     });
     fillPlayers();
     document.getElementById("trade-go").addEventListener("click", goTrade);
+    document.getElementById("trade-suggest").addEventListener("click", suggestTrade);
   }
 
   function fillPlayers() {
@@ -1550,10 +1572,18 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
     var outNames = pidsA.concat(pidsB).filter(function (pid) {
       return DATA.trade.players[pid] && DATA.trade.players[pid].out;
     }).map(function (pid) { return DATA.trade.players[pid].n; });
+    function nameList(pids) {
+      return pids.map(function (pid) {
+        var pp = DATA.trade.players[pid];
+        return pp ? pp.n + " (" + pp.p + ")" : pid;
+      });
+    }
     window.__lastTradeMeta = {
       uneven: pidsA.length === pidsB.length ? "" :
         (pidsA.length + " for " + pidsB.length),
       outNames: outNames,
+      getsA: nameList(pidsB), givesA: nameList(pidsA),
+      getsB: nameList(pidsA), givesB: nameList(pidsB),
     };
     evaluateTradeAsync(ridA, pidsA, ridB, pidsB, function (frac) {
       status.textContent = "SIMULATING... " + Math.round(frac * 100) + "%";
@@ -1562,6 +1592,68 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
       status.textContent = "";
       btn.disabled = false;
     });
+  }
+
+  function quickPpg(pids) {
+    var E = DATA.trade;
+    var tot = 0;
+    E.futureWeeks.forEach(function (w) {
+      tot += lineupPoints(pids, w) * E.scale;
+    });
+    return tot / E.futureWeeks.length;
+  }
+
+  function suggestTrade() {
+    var status = document.getElementById("trade-status");
+    var vA = document.getElementById("trade-a").value;
+    var vB = document.getElementById("trade-b").value;
+    if (!vA || !vB || vA === vB) {
+      status.textContent = "PICK TWO TEAMS FIRST"; return;
+    }
+    var E = DATA.trade;
+    var ridA = Number(vA), ridB = Number(vB);
+    var rA = E.rosters.filter(function (r) { return r.rid === ridA; })[0];
+    var rB = E.rosters.filter(function (r) { return r.rid === ridB; })[0];
+    status.textContent = "SCANNING " +
+      (rA.pids.length * rB.pids.length) + " SWAPS...";
+    setTimeout(function () {
+      var baseA = quickPpg(rA.pids), baseB = quickPpg(rB.pids);
+      var best = null;
+      rA.pids.forEach(function (pa) {
+        var ppa = E.players[pa];
+        if (!ppa || ppa.out) { return; }
+        rB.pids.forEach(function (pb) {
+          var ppb = E.players[pb];
+          if (!ppb || ppb.out) { return; }
+          var newA = rA.pids.filter(function (x) { return x !== pa; }).concat([pb]);
+          var newB = rB.pids.filter(function (x) { return x !== pb; }).concat([pa]);
+          var dA = quickPpg(newA) - baseA;
+          var dB = quickPpg(newB) - baseB;
+          if (dA > 0.02 && dB > 0.02) {
+            var score = Math.min(dA, dB) * 2 + (dA + dB);
+            if (!best || score > best.score) {
+              best = { pa: pa, pb: pb, dA: dA, dB: dB, score: score };
+            }
+          }
+        });
+      });
+      if (!best) {
+        status.textContent = "NO WIN-WIN 1-FOR-1 EXISTS BETWEEN THESE TEAMS";
+        return;
+      }
+      // tick the two players and run the full evaluation
+      ["a", "b"].forEach(function (sid) {
+        var pid = sid === "a" ? best.pa : best.pb;
+        var boxes = document.querySelectorAll("#trade-" + sid + "-players input");
+        boxes.forEach(function (cb) {
+          var want = cb.value === pid;
+          if (cb.checked !== want) { cb.click(); }
+        });
+      });
+      status.textContent = "FOUND ONE: " + E.players[best.pa].n +
+        " \u21c4 " + E.players[best.pb].n + " -- EVALUATING...";
+      goTrade();
+    }, 30);
   }
 
   function mgrOf(rid) {
@@ -1592,6 +1684,30 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
       g.textContent = r2.grade;
       panel.appendChild(g);
       panel.appendChild(div("tp-mgr", mgrOf(rid)));
+      var meta2 = window.__lastTradeMeta;
+      if (meta2) {
+        var isA = rid === ridA;
+        var pl = div("tp-players");
+        var l1 = document.createElement("div");
+        var s1 = document.createElement("span");
+        s1.className = "lbl"; s1.textContent = "GETS: ";
+        l1.appendChild(s1);
+        var w1 = document.createElement("span");
+        w1.className = "who2";
+        w1.textContent = (isA ? meta2.getsA : meta2.getsB).join(", ") || "nothing";
+        l1.appendChild(w1);
+        pl.appendChild(l1);
+        var l2 = document.createElement("div");
+        var s2b = document.createElement("span");
+        s2b.className = "lbl"; s2b.textContent = "GIVES: ";
+        l2.appendChild(s2b);
+        var w2 = document.createElement("span");
+        w2.className = "who2";
+        w2.textContent = (isA ? meta2.givesA : meta2.givesB).join(", ") || "nothing";
+        l2.appendChild(w2);
+        pl.appendChild(l2);
+        panel.appendChild(pl);
+      }
       [["PTS/WK", (r2.dMu > 0 ? "+" : "") + r2.dMu.toFixed(2)],
        ["PLAYOFF ODDS", (r2.dP > 0 ? "+" : "") + r2.dP.toFixed(1) + "pp"],
        ["TITLE ODDS", (r2.dT > 0 ? "+" : "") + r2.dT.toFixed(2) + "pp"]]
@@ -1670,6 +1786,39 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
     });
   }
 
+  function collapsify(cardId) {
+    var card = document.getElementById(cardId);
+    if (!card || card.hidden) { return; }
+    var head = card.querySelector(".section-head");
+    if (!head || head.dataset.collapsible) { return; }
+    head.dataset.collapsible = "1";
+    var inner = document.createElement("div");
+    var kids = [];
+    for (var i = 0; i < card.children.length; i++) {
+      if (card.children[i] !== head) { kids.push(card.children[i]); }
+    }
+    kids.forEach(function (k) { inner.appendChild(k); });
+    inner.hidden = true;
+    card.appendChild(inner);
+    head.classList.add("collapsible");
+    head.setAttribute("role", "button");
+    head.setAttribute("tabindex", "0");
+    head.setAttribute("aria-expanded", "false");
+    var sub2 = head.querySelector(".sub");
+    var chev = document.createElement("span");
+    chev.className = "chev";
+    chev.textContent = " \u25be";
+    (sub2 || head).appendChild(chev);
+    function flip() {
+      inner.hidden = !inner.hidden;
+      head.setAttribute("aria-expanded", inner.hidden ? "false" : "true");
+    }
+    head.addEventListener("click", flip);
+    head.addEventListener("keydown", function (ev) {
+      if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); flip(); }
+    });
+  }
+
   renderHead();
   state.pins = defaultPins();
   renderMovers();
@@ -1683,6 +1832,8 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
   renderHubGrades();
   renderHistory();
   renderFooter();
+  ["matchups-card", "seeds-card", "luck-card", "grades-card", "history-card"]
+    .forEach(collapsify);
 })();
 </script>
 
