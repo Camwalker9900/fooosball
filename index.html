@@ -1697,10 +1697,9 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
               var newB = rB.pids.filter(function (x) { return x !== pb; }).concat([pa]);
               var dA = quickPpg(newA) - bA;
               var dB = quickPpg(newB) - bB;
-              if (dA > 0.02 && dB > 0.02) {
-                candidates.push({ ra: ra, rb: rb, pa: pa, pb: pb,
-                                  score: Math.min(dA, dB) * 2 + (dA + dB) });
-              }
+              candidates.push({ ra: ra, rb: rb, pa: pa, pb: pb,
+                                dA: dA, dB: dB,
+                                score: Math.min(dA, dB) * 2 + (dA + dB) });
             });
           });
         }
@@ -1720,12 +1719,22 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
     function finishScan() {
       if (!candidates.length) {
         setTradeBusy(false);
-        status.textContent = pairs.length > 1
-          ? "NO WIN-WIN 1-FOR-1 EXISTS ANYWHERE. THIS LEAGUE IS EFFICIENT."
-          : "NO WIN-WIN 1-FOR-1 EXISTS BETWEEN THESE TEAMS";
+        status.textContent = "NO LEGAL 1-FOR-1 IN THIS SCOPE";
         return;
       }
-      candidates.sort(function (x, y) { return y.score - x.score; });
+      // Tier 1: both sides gain. Tier 2: nobody loses meaningfully and the
+      // trade creates net value. Tier 3: the least-lopsided deal available.
+      function tierOf(cd) {
+        if (cd.dA > 0.02 && cd.dB > 0.02) { return 1; }
+        if (cd.dA > -0.1 && cd.dB > -0.1 && (cd.dA + cd.dB) > 0) { return 2; }
+        return 3;
+      }
+      candidates.forEach(function (cd) { cd.tier = tierOf(cd); });
+      candidates.sort(function (x, y) {
+        if (x.tier !== y.tier) { return x.tier - y.tier; }
+        if (x.tier === 1) { return y.score - x.score; }
+        return Math.min(y.dA, y.dB) - Math.min(x.dA, x.dB);
+      });
       var pick = null, rank = 0;
       for (var c = 0; c < candidates.length; c++) {
         var key = candidates[c].pa + ":" + candidates[c].pb;
@@ -1743,7 +1752,7 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
         } else {
           suggestExhausted = true;
           status.textContent = "ALL " + candidates.length +
-            " WIN-WIN(S) IN THIS SCOPE SHOWN -- PRESS AGAIN TO START OVER, " +
+            " SUGGESTION(S) IN THIS SCOPE SHOWN -- PRESS AGAIN TO START OVER, " +
             "OR WIDEN THE SCOPE";
         }
         return;
@@ -1762,7 +1771,11 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
             if ((cb.value === pid) !== cb.checked) { cb.click(); }
           });
       });
-      status.textContent = "WIN-WIN " + rank + " OF " + candidates.length +
+      var nWin = candidates.filter(function (cd) { return cd.tier === 1; }).length;
+      status.textContent = (pick.tier === 1
+        ? "WIN-WIN " + rank + " OF " + nWin
+        : (pick.tier === 2 ? "NO WIN-WIN LEFT -- NEAR-FAIR DEAL"
+                           : "NO FAIR DEAL IN SCOPE -- LEAST-LOPSIDED OPTION")) +
         " -- EVALUATING...";
       setTradeBusy(false);
       goTrade();
