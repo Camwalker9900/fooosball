@@ -346,6 +346,7 @@ button.trade-head:focus-visible { outline: 3px solid var(--s3); outline-offset: 
 .trade-go:active { transform: translate(3px,3px); box-shadow: none; }
 .trade-go:disabled { background: var(--panel-2); color: var(--ink-3); cursor: default; }
 .trade-suggest { background: var(--panel-2); color: var(--accent); }
+.trade-clear { background: var(--panel-2); color: var(--ink-3); }
 .tp-players { font-size: 15px; line-height: 1.35; margin: 4px 0 8px; }
 .tp-players .lbl { color: var(--ink-3); }
 .tp-players .who2 { color: var(--ink); }
@@ -530,6 +531,7 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
     <div class="trade-actions">
       <button type="button" class="trade-go px" id="trade-go">EVALUATE TRADE</button>
       <button type="button" class="trade-go trade-suggest px" id="trade-suggest">SUGGEST TRADE</button>
+      <button type="button" class="trade-go trade-clear px" id="trade-clear">CLEAR</button>
       <span class="hint" id="trade-status"></span>
     </div>
     <div class="trade-result" id="trade-result" hidden>
@@ -1503,17 +1505,26 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
     fillPlayers();
     document.getElementById("trade-go").addEventListener("click", goTrade);
     document.getElementById("trade-suggest").addEventListener("click", suggestTrade);
+    document.getElementById("trade-clear").addEventListener("click", function () {
+      ["a", "b"].forEach(function (sid) {
+        document.querySelectorAll("#trade-" + sid + "-players input:checked")
+          .forEach(function (cb) { cb.click(); });
+      });
+      document.getElementById("trade-result").hidden = true;
+      document.getElementById("trade-status").textContent = "";
+      window.__lastTradeMeta = null;
+    });
   }
 
   function fillPlayers() {
     var vA = document.getElementById("trade-a").value;
     var vB = document.getElementById("trade-b").value;
     var ready = vA && vB && vA !== vB;
-    document.getElementById("trade-go").parentNode.style.display =
-      ready ? "" : "none";
+    document.getElementById("trade-go").disabled = !ready;
     var st = document.getElementById("trade-status");
     st.textContent = ready ? "" :
-      (vA && vB ? "PICK TWO DIFFERENT TEAMS" : "");
+      (vA && vB ? "PICK TWO DIFFERENT TEAMS"
+                : "PICK TEAMS, OR HIT SUGGEST TO SCAN THE LEAGUE");
     if (!ready) {
       ["a", "b"].forEach(function (sid) {
         document.getElementById("trade-" + sid + "-players").textContent = "";
@@ -1605,55 +1616,95 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
 
   function suggestTrade() {
     var status = document.getElementById("trade-status");
+    var E = DATA.trade;
     var vA = document.getElementById("trade-a").value;
     var vB = document.getElementById("trade-b").value;
-    if (!vA || !vB || vA === vB) {
-      status.textContent = "PICK TWO TEAMS FIRST"; return;
+    if (vA && vB && vA === vB) {
+      status.textContent = "PICK TWO DIFFERENT TEAMS"; return;
     }
-    var E = DATA.trade;
-    var ridA = Number(vA), ridB = Number(vB);
-    var rA = E.rosters.filter(function (r) { return r.rid === ridA; })[0];
-    var rB = E.rosters.filter(function (r) { return r.rid === ridB; })[0];
-    status.textContent = "SCANNING " +
-      (rA.pids.length * rB.pids.length) + " SWAPS...";
-    setTimeout(function () {
-      var baseA = quickPpg(rA.pids), baseB = quickPpg(rB.pids);
-      var best = null;
-      rA.pids.forEach(function (pa) {
-        var ppa = E.players[pa];
-        if (!ppa || ppa.out) { return; }
-        rB.pids.forEach(function (pb) {
-          var ppb = E.players[pb];
-          if (!ppb || ppb.out) { return; }
-          var newA = rA.pids.filter(function (x) { return x !== pa; }).concat([pb]);
-          var newB = rB.pids.filter(function (x) { return x !== pb; }).concat([pa]);
-          var dA = quickPpg(newA) - baseA;
-          var dB = quickPpg(newB) - baseB;
-          if (dA > 0.02 && dB > 0.02) {
-            var score = Math.min(dA, dB) * 2 + (dA + dB);
-            if (!best || score > best.score) {
-              best = { pa: pa, pb: pb, dA: dA, dB: dB, score: score };
-            }
-          }
-        });
+    var listA = vA ? [Number(vA)] : E.rosters.map(function (r) { return r.rid; });
+    var listB = vB ? [Number(vB)] : E.rosters.map(function (r) { return r.rid; });
+    var pairs = [];
+    listA.forEach(function (ra) {
+      listB.forEach(function (rb) {
+        if (ra < rb || (vA && !vB && ra !== rb) || (vB && !vA && ra !== rb)) {
+          if (ra !== rb) { pairs.push([ra, rb]); }
+        }
       });
-      if (!best) {
-        status.textContent = "NO WIN-WIN 1-FOR-1 EXISTS BETWEEN THESE TEAMS";
+    });
+    // dedupe mirrored pairs when both sides are open
+    var seen = {};
+    pairs = pairs.filter(function (pr) {
+      var k = Math.min(pr[0], pr[1]) + "-" + Math.max(pr[0], pr[1]);
+      if (seen[k]) { return false; }
+      seen[k] = 1; return true;
+    });
+    var byRid = {};
+    E.rosters.forEach(function (r) { byRid[r.rid] = r; });
+    var baseCache = {};
+    function basePpg(rid) {
+      if (!(rid in baseCache)) { baseCache[rid] = quickPpg(byRid[rid].pids); }
+      return baseCache[rid];
+    }
+    var best = null;
+    var pi = 0;
+    var suggestBtn = document.getElementById("trade-suggest");
+    suggestBtn.disabled = true;
+    function scanChunk() {
+      var until = Math.min(pi + 6, pairs.length);
+      for (; pi < until; pi++) {
+        var ra = pairs[pi][0], rb = pairs[pi][1];
+        var rA = byRid[ra], rB = byRid[rb];
+        var bA = basePpg(ra), bB = basePpg(rb);
+        rA.pids.forEach(function (pa) {
+          var ppa = E.players[pa];
+          if (!ppa || ppa.out) { return; }
+          rB.pids.forEach(function (pb) {
+            var ppb = E.players[pb];
+            if (!ppb || ppb.out) { return; }
+            var newA = rA.pids.filter(function (x) { return x !== pa; }).concat([pb]);
+            var newB = rB.pids.filter(function (x) { return x !== pb; }).concat([pa]);
+            var dA = quickPpg(newA) - bA;
+            var dB = quickPpg(newB) - bB;
+            if (dA > 0.02 && dB > 0.02) {
+              var score = Math.min(dA, dB) * 2 + (dA + dB);
+              if (!best || score > best.score) {
+                best = { ra: ra, rb: rb, pa: pa, pb: pb, score: score };
+              }
+            }
+          });
+        });
+      }
+      if (pi < pairs.length) {
+        status.textContent = "SCANNING LEAGUE... " +
+          Math.round(pi / pairs.length * 100) + "%";
+        setTimeout(scanChunk, 0);
         return;
       }
-      // tick the two players and run the full evaluation
+      suggestBtn.disabled = false;
+      if (!best) {
+        status.textContent = pairs.length > 1
+          ? "NO WIN-WIN 1-FOR-1 EXISTS ANYWHERE. THIS LEAGUE IS EFFICIENT."
+          : "NO WIN-WIN 1-FOR-1 EXISTS BETWEEN THESE TEAMS";
+        return;
+      }
+      var selA = document.getElementById("trade-a");
+      var selB = document.getElementById("trade-b");
+      selA.value = String(best.ra); selA.dispatchEvent(new Event("change"));
+      selB.value = String(best.rb); selB.dispatchEvent(new Event("change"));
       ["a", "b"].forEach(function (sid) {
         var pid = sid === "a" ? best.pa : best.pb;
-        var boxes = document.querySelectorAll("#trade-" + sid + "-players input");
-        boxes.forEach(function (cb) {
-          var want = cb.value === pid;
-          if (cb.checked !== want) { cb.click(); }
-        });
+        document.querySelectorAll("#trade-" + sid + "-players input")
+          .forEach(function (cb) {
+            if ((cb.value === pid) !== cb.checked) { cb.click(); }
+          });
       });
-      status.textContent = "FOUND ONE: " + E.players[best.pa].n +
-        " \u21c4 " + E.players[best.pb].n + " -- EVALUATING...";
+      status.textContent = "BEST IN SCOPE: " + byRid[best.ra].mgr + " \u21c4 " +
+        byRid[best.rb].mgr + " -- EVALUATING...";
       goTrade();
-    }, 30);
+    }
+    status.textContent = "SCANNING...";
+    setTimeout(scanChunk, 20);
   }
 
   function mgrOf(rid) {
