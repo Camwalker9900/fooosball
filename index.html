@@ -1491,7 +1491,7 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
       sel.textContent = "";
       var ph = document.createElement("option");
       ph.value = "";
-      ph.textContent = i === 0 ? "SELECT TEAM A..." : "SELECT TEAM B...";
+      ph.textContent = i === 0 ? "YOUR TEAM..." : "TRADE WITH...";
       ph.selected = true;
       sel.appendChild(ph);
       DATA.trade.rosters.forEach(function (r) {
@@ -1506,10 +1506,11 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
     document.getElementById("trade-go").addEventListener("click", goTrade);
     document.getElementById("trade-suggest").addEventListener("click", suggestTrade);
     document.getElementById("trade-clear").addEventListener("click", function () {
-      ["a", "b"].forEach(function (sid) {
-        document.querySelectorAll("#trade-" + sid + "-players input:checked")
-          .forEach(function (cb) { cb.click(); });
-      });
+      if (tradeBusy) { return; }
+      // keep YOUR team; reset the trade partner, picks, and result
+      var sB = document.getElementById("trade-b");
+      sB.value = "";
+      sB.dispatchEvent(new Event("change"));
       document.getElementById("trade-result").hidden = true;
       document.getElementById("trade-status").textContent = "";
       window.__lastTradeMeta = null;
