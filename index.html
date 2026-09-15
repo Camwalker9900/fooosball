@@ -1284,10 +1284,17 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
     return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2 * Math.PI * v);
   }
 
-  var _lpPos = new Array(24), _lpVal = new Float64Array(24),
-      _lpUsed = new Uint8Array(24);
+  var _lpCap = 24;
+  var _lpPos = new Array(_lpCap), _lpVal = new Float64Array(_lpCap),
+      _lpUsed = new Uint8Array(_lpCap);
   function lineupPoints(pids, week) {
     var E = DATA.trade;
+    if (pids.length > _lpCap) {
+      _lpCap = pids.length + 8;
+      _lpPos = new Array(_lpCap);
+      _lpVal = new Float64Array(_lpCap);
+      _lpUsed = new Uint8Array(_lpCap);
+    }
     var byes = E.byes[String(week)];
     var n = 0;
     for (var i = 0; i < pids.length; i++) {
@@ -1760,10 +1767,15 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
     var pkgQueue = [];
     setTradeBusy(true);
 
+    var STASH = { IR: 1, PUP: 1, NA: 1 };
+    function suggestable(px) {
+      // manual evaluation may involve anyone; SUGGESTIONS skip season-done
+      // players and long-absence stashes -- nobody pitches those trades
+      return px && !px.out && !STASH[px.inj];
+    }
     function corePlayers(r) {
       return r.pids.filter(function (x) {
-        var px = E.players[x];
-        return px && !px.out;
+        return suggestable(E.players[x]);
       }).sort(function (x, y) {
         return E.players[y].v - E.players[x].v;
       }).slice(0, TRADE_CORE);
@@ -1777,10 +1789,10 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
           var rA = byRid[ra], rB = byRid[rb];
           rA.pids.forEach(function (pa) {
             var ppa = E.players[pa];
-            if (!ppa || ppa.out) { return; }
+            if (!suggestable(ppa)) { return; }
             rB.pids.forEach(function (pb) {
               var ppb = E.players[pb];
-              if (!ppb || ppb.out) { return; }
+              if (!suggestable(ppb)) { return; }
               if (!packageLegal(E, rA, rB, [pa], [pb])) { return; }
               if (!packageLegal(E, rB, rA, [pb], [pa])) { return; }
               var cd = evalPackage(ra, rb, [pa], [pb]);
@@ -1802,6 +1814,11 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
         var ranked = Object.keys(pairBest).sort(function (x, y) {
           return pairBest[y] - pairBest[x];
         }).slice(0, pairs.length === 1 ? 1 : PACKAGE_PAIRS);
+        if (pairs.length === 1) {
+          // a chosen pairing is always package-searched, even when no single
+          // swap was legal (thin rosters can still make packages work)
+          ranked = [pairs[0][0] + "-" + pairs[0][1]];
+        }
         ranked.forEach(function (pk) {
           var parts = pk.split("-");
           var ra2 = Number(parts[0]), rb2 = Number(parts[1]);
@@ -1834,7 +1851,7 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
 
     function phase2Chunk() {
       try {
-        var until = Math.min(pi + 400, pkgQueue.length);
+        var until = Math.min(pi + 200, pkgQueue.length);
         for (; pi < until; pi++) {
           var q = pkgQueue[pi];
           var rA = byRid[q[0]], rB = byRid[q[1]];
