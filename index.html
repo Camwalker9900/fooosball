@@ -299,6 +299,14 @@ h1 {
 .chip:focus-visible { outline: 3px solid var(--s3); outline-offset: 2px; }
 
 /* ---------- trade machine ---------- */
+button.trade-head {
+  display: flex; width: 100%; text-align: left; cursor: pointer;
+  appearance: none; color: inherit; font: inherit;
+}
+button.trade-head:focus-visible { outline: 3px solid var(--s3); outline-offset: -3px; }
+.chev { display: inline-block; color: var(--accent); }
+.trade-head[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.trade-hintline { padding: 12px 18px 16px; font-size: 17px; color: var(--ink-3); }
 .trade-body {
   display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
   padding: 14px 18px 4px;
@@ -493,10 +501,11 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
   </section>
 
   <section class="card" id="trade-card" hidden>
-    <div class="section-head">
+    <button type="button" class="section-head trade-head" id="trade-toggle" aria-expanded="false">
       <h2>TRADE MACHINE</h2>
-      <span class="sub">SAME ENGINE AS THE ODDS. BOTH SIDES. NO MERCY.</span>
-    </div>
+      <span class="sub">SAME ENGINE AS THE ODDS. TAP TO OPEN <span class="chev" id="trade-chev">&#9662;</span></span>
+    </button>
+    <div id="trade-inner" hidden>
     <div class="trade-body">
       <div class="trade-col">
         <select id="trade-a" class="trade-select"></select>
@@ -515,6 +524,7 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
       <div class="trade-verdict px" id="trade-verdict"></div>
       <div class="trade-panels" id="trade-panels"></div>
       <div class="trade-note" id="trade-note"></div>
+    </div>
     </div>
   </section>
 
@@ -1443,15 +1453,28 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
       card.hidden = true; return;
     }
     card.hidden = false;
+    var toggle = document.getElementById("trade-toggle");
+    toggle.addEventListener("click", function () {
+      var inner = document.getElementById("trade-inner");
+      inner.hidden = !inner.hidden;
+      toggle.setAttribute("aria-expanded", inner.hidden ? "false" : "true");
+      toggle.querySelector(".sub").childNodes[0].textContent =
+        inner.hidden ? "SAME ENGINE AS THE ODDS. TAP TO OPEN "
+                     : "PICK TWO TEAMS, THEN THE PLAYERS GOING EACH WAY ";
+    });
     var selA = document.getElementById("trade-a");
     var selB = document.getElementById("trade-b");
     [selA, selB].forEach(function (sel, i) {
       sel.textContent = "";
-      DATA.trade.rosters.forEach(function (r, j) {
+      var ph = document.createElement("option");
+      ph.value = "";
+      ph.textContent = i === 0 ? "SELECT TEAM A..." : "SELECT TEAM B...";
+      ph.selected = true;
+      sel.appendChild(ph);
+      DATA.trade.rosters.forEach(function (r) {
         var o = document.createElement("option");
         o.value = r.rid;
         o.textContent = r.mgr.toUpperCase();
-        if ((i === 0 && j === 0) || (i === 1 && j === 1)) { o.selected = true; }
         sel.appendChild(o);
       });
       sel.addEventListener("change", fillPlayers);
@@ -1461,6 +1484,21 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
   }
 
   function fillPlayers() {
+    var vA = document.getElementById("trade-a").value;
+    var vB = document.getElementById("trade-b").value;
+    var ready = vA && vB && vA !== vB;
+    document.getElementById("trade-go").parentNode.style.display =
+      ready ? "" : "none";
+    var st = document.getElementById("trade-status");
+    st.textContent = ready ? "" :
+      (vA && vB ? "PICK TWO DIFFERENT TEAMS" : "");
+    if (!ready) {
+      ["a", "b"].forEach(function (sid) {
+        document.getElementById("trade-" + sid + "-players").textContent = "";
+      });
+      document.getElementById("trade-result").hidden = true;
+      return;
+    }
     ["a", "b"].forEach(function (sideId) {
       var rid = Number(document.getElementById("trade-" + sideId).value);
       var r = DATA.trade.rosters.filter(function (x) { return x.rid === rid; })[0];
