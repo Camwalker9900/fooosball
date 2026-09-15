@@ -1284,34 +1284,41 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
     return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2 * Math.PI * v);
   }
 
+  var _lpPos = new Array(24), _lpVal = new Float64Array(24),
+      _lpUsed = new Uint8Array(24);
   function lineupPoints(pids, week) {
     var E = DATA.trade;
-    var bye = {};
-    (E.byes[String(week)] || []).forEach(function (tm) { bye[tm] = 1; });
-    var pool = [];
-    pids.forEach(function (pid) {
-      var p = E.players[pid];
-      if (!p || p.out || bye[p.t]) { return; }
-      pool.push({ pos: p.p, v: p.v, used: false });
-    });
+    var byes = E.byes[String(week)];
+    var n = 0;
+    for (var i = 0; i < pids.length; i++) {
+      var p = E.players[pids[i]];
+      if (!p || p.out) { continue; }
+      if (byes && byes.indexOf(p.t) !== -1) { continue; }
+      _lpPos[n] = p.p; _lpVal[n] = p.v; _lpUsed[n] = 0; n++;
+    }
     var total = 0;
-    E.rosterPositions.forEach(function (slot) {
+    var slots = E.rosterPositions;
+    for (var sIdx = 0; sIdx < slots.length; sIdx++) {
+      var slot = slots[sIdx];
       var elig = FLEX[slot] || null;
-      var best = null;
-      pool.forEach(function (c) {
-        if (c.used) { return; }
-        if (elig ? !elig[c.pos] : c.pos !== slot) { return; }
-        if (!best || c.v > best.v) { best = c; }
-      });
+      var bestI = -1, bestV = -1;
+      for (var j = 0; j < n; j++) {
+        if (_lpUsed[j]) { continue; }
+        if (elig ? !elig[_lpPos[j]] : _lpPos[j] !== slot) { continue; }
+        if (_lpVal[j] > bestV) { bestV = _lpVal[j]; bestI = j; }
+      }
       var floor = 0;
       if (elig) {
-        Object.keys(elig).forEach(function (pp) {
-          floor = Math.max(floor, E.replacement[pp] || 0);
-        });
+        for (var fp in elig) {
+          var rv = E.replacement[fp] || 0;
+          if (rv > floor) { floor = rv; }
+        }
       } else { floor = E.replacement[slot] || 0; }
-      if (best) { best.used = true; total += Math.max(best.v, floor); }
-      else { total += floor; }
-    });
+      if (bestI >= 0) {
+        _lpUsed[bestI] = 1;
+        total += bestV > floor ? bestV : floor;
+      } else { total += floor; }
+    }
     return total;
   }
 
@@ -1640,6 +1647,64 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
                            JSON.stringify(suggestSeen));
     } catch (e) { /* fine */ }
   }
+
+  var GIVE_FLOOR = { QB: 1, RB: 2, WR: 2, TE: 1, K: 1, DEF: 1 };
+  var TAKE_CAP = { QB: 2, RB: 4, WR: 4, TE: 2, K: 1, DEF: 1 };
+  var MAX_PACKAGE = 3;
+  var TRADE_CORE = 5;      // deepest players considered for packages
+  var PACKAGE_PAIRS = 3;   // pairings that get the full package search
+  var VALUE_BAND = 10;     // skip packages whose raw values differ more
+
+  function screenWeeks() {
+    // 5 spread sample weeks for fast screening; the 40k-sim verdict is exact
+    var fw = DATA.trade.futureWeeks;
+    if (fw.length <= 4) { return fw; }
+    var step = (fw.length - 1) / 3;
+    var out = [];
+    for (var i = 0; i < 4; i++) { out.push(fw[Math.round(i * step)]); }
+    return out;
+  }
+  function screenPpg(pids) {
+    var E = DATA.trade;
+    var ws = screenWeeks();
+    var tot = 0;
+    ws.forEach(function (w) { tot += lineupPoints(pids, w) * E.scale; });
+    return tot / ws.length;
+  }
+
+  function subsetsUpTo(arr, k) {
+    var out = [];
+    function rec(start, cur) {
+      if (cur.length) { out.push(cur.slice()); }
+      if (cur.length === k) { return; }
+      for (var i = start; i < arr.length; i++) {
+        cur.push(arr[i]);
+        rec(i + 1, cur);
+        cur.pop();
+      }
+    }
+    rec(0, []);
+    return out;
+  }
+
+  function packageLegal(E, rGive, rTake, gives, gets) {
+    // net position counts after the swap, both structural rules
+    var delta = {};
+    gives.forEach(function (pid) { delta[E.players[pid].p] = (delta[E.players[pid].p] || 0) - 1; });
+    gets.forEach(function (pid) { delta[E.players[pid].p] = (delta[E.players[pid].p] || 0) + 1; });
+    var ok = true;
+    Object.keys(delta).forEach(function (pos) {
+      var have = rGive.pids.filter(function (x) {
+        var px = E.players[x];
+        return px && px.p === pos;
+      }).length;
+      var after = have + delta[pos];
+      if (delta[pos] < 0 && after < (GIVE_FLOOR[pos] || 0)) { ok = false; }
+      if (delta[pos] > 0 && after > (TAKE_CAP[pos] || 9)) { ok = false; }
+    });
+    return ok;
+  }
+
   function suggestTrade() {
     if (tradeBusy) { return; }
     var status = document.getElementById("trade-status");
@@ -1666,53 +1731,122 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
     E.rosters.forEach(function (r) { byRid[r.rid] = r; });
     var baseCache = {};
     function basePpg(rid) {
-      if (!(rid in baseCache)) { baseCache[rid] = quickPpg(byRid[rid].pids); }
+      if (!(rid in baseCache)) { baseCache[rid] = screenPpg(byRid[rid].pids); }
       return baseCache[rid];
     }
-    var GIVE_FLOOR = { QB: 1, RB: 2, WR: 2, TE: 1, K: 1, DEF: 1 };
-    var TAKE_CAP = { QB: 2, RB: 4, WR: 4, TE: 2, K: 1, DEF: 1 };
-    function posCount(roster, pos) {
-      return roster.pids.filter(function (x) {
-        var px = E.players[x];
-        return px && px.p === pos;
-      }).length;
+    function rawSum(pids) {
+      var t = 0;
+      pids.forEach(function (x) { t += (E.players[x] || {}).v || 0; });
+      return t;
     }
+    function evalPackage(ra, rb, gives, gets) {
+      var rA = byRid[ra], rB = byRid[rb];
+      var newA = rA.pids.filter(function (x) { return gives.indexOf(x) === -1; })
+        .concat(gets);
+      var newB = rB.pids.filter(function (x) { return gets.indexOf(x) === -1; })
+        .concat(gives);
+      var dA = screenPpg(newA) - basePpg(ra);
+      var dB = screenPpg(newB) - basePpg(rb);
+      // simplicity tiebreak: a package must EARN its extra bodies
+      var complexity = 0.03 * (gives.length + gets.length - 2);
+      return { ra: ra, rb: rb, pas: gives, pbs: gets, dA: dA, dB: dB,
+               score: Math.min(dA, dB) * 2 + (dA + dB) - complexity };
+    }
+
     var candidates = [];
+    var pairBest = {};
     var pi = 0;
+    var phase = 1;
+    var pkgQueue = [];
     setTradeBusy(true);
-    function scanChunk() {
+
+    function corePlayers(r) {
+      return r.pids.filter(function (x) {
+        var px = E.players[x];
+        return px && !px.out;
+      }).sort(function (x, y) {
+        return E.players[y].v - E.players[x].v;
+      }).slice(0, TRADE_CORE);
+    }
+
+    function phase1Chunk() {
       try {
         var until = Math.min(pi + 6, pairs.length);
         for (; pi < until; pi++) {
           var ra = pairs[pi][0], rb = pairs[pi][1];
           var rA = byRid[ra], rB = byRid[rb];
-          var bA = basePpg(ra), bB = basePpg(rb);
           rA.pids.forEach(function (pa) {
             var ppa = E.players[pa];
-            if (!ppa || ppa.out) { return; }  // season-done only
+            if (!ppa || ppa.out) { return; }
             rB.pids.forEach(function (pb) {
               var ppb = E.players[pb];
-              if (!ppb || ppb.out) { return; }  // season-done only
-              if (ppa.p !== ppb.p) {
-                if (posCount(rA, ppa.p) <= (GIVE_FLOOR[ppa.p] || 0)) { return; }
-                if (posCount(rB, ppb.p) <= (GIVE_FLOOR[ppb.p] || 0)) { return; }
-                if (posCount(rA, ppb.p) >= (TAKE_CAP[ppb.p] || 9)) { return; }
-                if (posCount(rB, ppa.p) >= (TAKE_CAP[ppa.p] || 9)) { return; }
+              if (!ppb || ppb.out) { return; }
+              if (!packageLegal(E, rA, rB, [pa], [pb])) { return; }
+              if (!packageLegal(E, rB, rA, [pb], [pa])) { return; }
+              var cd = evalPackage(ra, rb, [pa], [pb]);
+              candidates.push(cd);
+              var pk = ra + "-" + rb;
+              if (!(pk in pairBest) || cd.score > pairBest[pk]) {
+                pairBest[pk] = cd.score;
               }
-              var newA = rA.pids.filter(function (x) { return x !== pa; }).concat([pb]);
-              var newB = rB.pids.filter(function (x) { return x !== pb; }).concat([pa]);
-              var dA = quickPpg(newA) - bA;
-              var dB = quickPpg(newB) - bB;
-              candidates.push({ ra: ra, rb: rb, pa: pa, pb: pb,
-                                dA: dA, dB: dB,
-                                score: Math.min(dA, dB) * 2 + (dA + dB) });
             });
           });
         }
         if (pi < pairs.length) {
-          status.textContent = "SCANNING... " +
-            Math.round(pi / pairs.length * 100) + "%";
-          setTimeout(scanChunk, 0);
+          status.textContent = "SCANNING SWAPS... " +
+            Math.round(pi / pairs.length * 50) + "%";
+          setTimeout(phase1Chunk, 0);
+          return;
+        }
+        // pick the most promising pairings for the package search
+        var ranked = Object.keys(pairBest).sort(function (x, y) {
+          return pairBest[y] - pairBest[x];
+        }).slice(0, pairs.length === 1 ? 1 : PACKAGE_PAIRS);
+        ranked.forEach(function (pk) {
+          var parts = pk.split("-");
+          var ra2 = Number(parts[0]), rb2 = Number(parts[1]);
+          var subsA = subsetsUpTo(corePlayers(byRid[ra2]), MAX_PACKAGE);
+          var subsB = subsetsUpTo(corePlayers(byRid[rb2]), MAX_PACKAGE);
+          subsA.forEach(function (ga) {
+            if (ga.length === 1) { return; /* singles done in phase 1 */ }
+            subsB.forEach(function (gb) {
+              pkgQueue.push([ra2, rb2, ga, gb]);
+            });
+          });
+          // also 1-for-many shapes (single from A, package from B)
+          subsA.forEach(function (ga) {
+            if (ga.length !== 1) { return; }
+            subsB.forEach(function (gb) {
+              if (gb.length === 1) { return; }
+              pkgQueue.push([ra2, rb2, ga, gb]);
+            });
+          });
+        });
+        phase = 2;
+        pi = 0;
+        setTimeout(phase2Chunk, 0);
+      } catch (err) {
+        setTradeBusy(false);
+        status.textContent = "SCAN FAILED -- RELOAD AND TRY AGAIN";
+        throw err;
+      }
+    }
+
+    function phase2Chunk() {
+      try {
+        var until = Math.min(pi + 400, pkgQueue.length);
+        for (; pi < until; pi++) {
+          var q = pkgQueue[pi];
+          var rA = byRid[q[0]], rB = byRid[q[1]];
+          if (Math.abs(rawSum(q[2]) - rawSum(q[3])) > VALUE_BAND) { continue; }
+          if (!packageLegal(E, rA, rB, q[2], q[3])) { continue; }
+          if (!packageLegal(E, rB, rA, q[3], q[2])) { continue; }
+          candidates.push(evalPackage(q[0], q[1], q[2], q[3]));
+        }
+        if (pi < pkgQueue.length) {
+          status.textContent = "BUILDING PACKAGES... " +
+            (50 + Math.round(pi / pkgQueue.length * 50)) + "%";
+          setTimeout(phase2Chunk, 0);
           return;
         }
         finishScan();
@@ -1722,14 +1856,18 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
         throw err;
       }
     }
+
+    function keyOf(cd) {
+      return cd.pas.slice().sort().join(",") + "|" +
+             cd.pbs.slice().sort().join(",");
+    }
+
     function finishScan() {
       if (!candidates.length) {
         setTradeBusy(false);
-        status.textContent = "NO LEGAL 1-FOR-1 IN THIS SCOPE";
+        status.textContent = "NO LEGAL TRADE IN THIS SCOPE";
         return;
       }
-      // Tier 1: both sides gain. Tier 2: nobody loses meaningfully and the
-      // trade creates net value. Tier 3: the least-lopsided deal available.
       function tierOf(cd) {
         if (cd.dA > 0.02 && cd.dB > 0.02) { return 1; }
         if (cd.dA > -0.1 && cd.dB > -0.1 && (cd.dA + cd.dB) > 0) { return 2; }
@@ -1743,13 +1881,13 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
       });
       var pick = null, rank = 0;
       for (var c = 0; c < candidates.length; c++) {
-        var key = candidates[c].pa + ":" + candidates[c].pb;
-        if (!suggestSeen[key]) { pick = candidates[c]; rank = c + 1; break; }
+        if (!suggestSeen[keyOf(candidates[c])]) {
+          pick = candidates[c]; rank = c + 1; break;
+        }
       }
       if (!pick) {
         setTradeBusy(false);
         if (suggestExhausted) {
-          // explicit second press: restart the cycle from the top
           suggestSeen = {};
           rememberSeen();
           suggestExhausted = false;
@@ -1764,30 +1902,33 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
         return;
       }
       suggestExhausted = false;
-      suggestSeen[pick.pa + ":" + pick.pb] = 1;
+      suggestSeen[keyOf(pick)] = 1;
       rememberSeen();
       var selA = document.getElementById("trade-a");
       var selB = document.getElementById("trade-b");
       selA.value = String(pick.ra); selA.dispatchEvent(new Event("change"));
       selB.value = String(pick.rb); selB.dispatchEvent(new Event("change"));
       ["a", "b"].forEach(function (sid) {
-        var pid = sid === "a" ? pick.pa : pick.pb;
+        var want = sid === "a" ? pick.pas : pick.pbs;
         document.querySelectorAll("#trade-" + sid + "-players input")
           .forEach(function (cb) {
-            if ((cb.value === pid) !== cb.checked) { cb.click(); }
+            var w = want.indexOf(cb.value) !== -1;
+            if (w !== cb.checked) { cb.click(); }
           });
       });
       var nWin = candidates.filter(function (cd) { return cd.tier === 1; }).length;
+      var shape = pick.pas.length + "-FOR-" + pick.pbs.length;
       status.textContent = (pick.tier === 1
-        ? "WIN-WIN " + rank + " OF " + nWin
-        : (pick.tier === 2 ? "NO WIN-WIN LEFT -- NEAR-FAIR DEAL"
-                           : "NO FAIR DEAL IN SCOPE -- LEAST-LOPSIDED OPTION")) +
+        ? shape + " WIN-WIN " + rank + " OF " + nWin
+        : (pick.tier === 2 ? "NO WIN-WIN LEFT -- NEAR-FAIR " + shape
+                           : "NO FAIR DEAL IN SCOPE -- LEAST-LOPSIDED " + shape)) +
         " -- EVALUATING...";
+      window.__fromSuggest = true;
       setTradeBusy(false);
       goTrade();
     }
     status.textContent = "SCANNING...";
-    setTimeout(scanChunk, 20);
+    setTimeout(phase1Chunk, 20);
   }
 
   function mgrOf(rid) {
@@ -1806,6 +1947,11 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
       verdict = winner.toUpperCase() + " WINS THIS TRADE" +
         (Math.abs(gap) > 2.5 ? ". IT'S NOT CLOSE." : ".");
     }
+    if (window.__fromSuggest && Math.abs(gap) > 2.5) {
+      verdict += " (THE QUICK SCREEN LIKED IT; THE FULL SIM DOESN'T. " +
+        "PRESS SUGGEST FOR ANOTHER.)";
+    }
+    window.__fromSuggest = false;
     document.getElementById("trade-verdict").textContent = "\u25b8 " + verdict;
     var panels = document.getElementById("trade-panels");
     panels.textContent = "";
