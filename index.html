@@ -676,6 +676,18 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
       d: d, fill: "none", stroke: color, "stroke-width": w,
       "stroke-linejoin": "round", "stroke-linecap": "round", opacity: opacity
     }));
+    if (w > 2) {
+      // pixel breakpoints: one square per weekly analysis
+      var sz = 7;
+      pts.forEach(function (p) {
+        svg.appendChild(el("rect", {
+          x: (x(p.week) - sz / 2).toFixed(1), y: (y(p.v) - sz / 2).toFixed(1),
+          width: sz, height: sz, fill: color,
+          stroke: "#000000", "stroke-width": 2,
+          "shape-rendering": "crispEdges", opacity: opacity
+        }));
+      });
+    }
   }
 
   function labelEnd(svg, pts, x, y, color, mgr, width, usedYs) {
