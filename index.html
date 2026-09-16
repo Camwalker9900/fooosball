@@ -512,6 +512,20 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
     <div class="legend" id="legend" aria-label="Teams &mdash; click to highlight"></div>
   </section>
 
+  <section class="card" id="grades-card" hidden>
+    <div class="section-head">
+      <h2>MANAGER MOVES</h2>
+      <span class="sub">EVERY MOVE GRADED. C 0.00 = REPLACEMENT-LEVEL CHURN: FREE, VERIFIED, NOT WORTH POINTS</span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>WK</th><th>MANAGER</th><th>MOVE</th><th>+PTS/WK</th><th>GRADE</th></tr></thead>
+      <tbody id="hub-grades"></tbody>
+      </table>
+    </div>
+  </section>
+
+
   <section class="card" id="trade-card" hidden>
     <button type="button" class="section-head trade-head" id="trade-toggle" aria-expanded="false">
       <h2>TRADE MACHINE</h2>
@@ -572,19 +586,6 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
       <table>
         <thead><tr><th>WK</th><th>MATCHUP</th><th>PICK</th><th>CONF</th><th>RESULT</th></tr></thead>
         <tbody id="preds-body"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="card" id="grades-card" hidden>
-    <div class="section-head">
-      <h2>DECISIONS</h2>
-      <span class="sub">EVERY MOVE GRADED. C 0.00 = REPLACEMENT-LEVEL CHURN: FREE, VERIFIED, NOT WORTH POINTS</span>
-    </div>
-    <div class="table-scroll">
-      <table>
-        <thead><tr><th>WK</th><th>MANAGER</th><th>MOVE</th><th>+PTS/WK</th><th>GRADE</th></tr></thead>
-      <tbody id="hub-grades"></tbody>
       </table>
     </div>
   </section>
