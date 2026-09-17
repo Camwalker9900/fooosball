@@ -661,6 +661,14 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
         <tbody id="cfb-tot-body"></tbody>
       </table>
     </div>
+    <div class="mini-head"><h3>PLAYER BETS</h3>
+      <span class="sub">O=OVER U=UNDER &#183; SLEEPER PICK'EM LINES</span></div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>PLAYER</th><th>TEAM</th><th>BET</th><th>BOT PROJ</th></tr></thead>
+        <tbody id="cfb-props-body"></tbody>
+      </table>
+    </div>
     <div class="bot-record" id="cfb-record"></div>
 
     <div id="nfl-wrap" hidden>
@@ -2346,6 +2354,17 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
         tr.appendChild(td);
       });
       ct.appendChild(tr);
+    });
+    var cp = document.getElementById("cfb-props-body");
+    cp.textContent = "";
+    (cfb.cfb_props || []).forEach(function (r) {
+      var tr = document.createElement("tr");
+      [r.player, r.team, r.bet, String(r.proj)].forEach(function (txt) {
+        var td = document.createElement("td");
+        td.textContent = txt;
+        tr.appendChild(td);
+      });
+      cp.appendChild(tr);
     });
     var rec = document.getElementById("cfb-record");
     if (cfb.record) {
