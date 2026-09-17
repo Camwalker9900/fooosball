@@ -665,6 +665,11 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
         <table><tbody id="nfl-players-body"></tbody></table>
       </div>
       <div class="sub" id="nfl-record" style="padding:6px 2px"></div>
+      <div class="section-head"><h2 style="font-size:10px">PAST WEEKS</h2>
+        <span class="sub">EVERY LOCKED WEEK, GRADED. NO MEMORY-HOLING.</span></div>
+      <div class="table-scroll">
+        <table><tbody id="bot-archive"></tbody></table>
+      </div>
     </div>
   </section>
 
@@ -2373,6 +2378,27 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
         }).join("  \u00b7  ");
         tr.appendChild(td1);
         pb.appendChild(tr);
+      });
+    }
+    var ar = document.getElementById("bot-archive");
+    if (ar) {
+      ar.textContent = "";
+      var arch = cfb.archive || [];
+      if (!arch.length) {
+        var tr0 = document.createElement("tr");
+        var td0 = document.createElement("td");
+        td0.textContent = "FIRST GRADED WEEK LANDS AFTER THIS WEEKEND";
+        tr0.appendChild(td0);
+        ar.appendChild(tr0);
+      }
+      arch.forEach(function (row) {
+        var tr = document.createElement("tr");
+        [row.label, row.line].forEach(function (txt) {
+          var td = document.createElement("td");
+          td.textContent = txt;
+          tr.appendChild(td);
+        });
+        ar.appendChild(tr);
       });
     }
     var nr = document.getElementById("nfl-record");
