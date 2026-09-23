@@ -169,11 +169,19 @@ h1 {
 }
 .mini-head .sub { font-size: 15px; color: var(--ink-3); }
 .bot-record { padding: 4px 18px 10px; font-size: 16px; color: var(--ink-3); }
-#trade-card { display: none; }
+#trade-card {
+  position: fixed; z-index: 60; top: 0; left: 50%;
+  width: min(680px, 94vw); max-height: 86vh; overflow-y: auto;
+  transform: translate(-50%, -110%); visibility: hidden;
+  transition: transform .28s ease, visibility 0s linear .28s;
+}
 #trade-card.open {
-  display: block; position: fixed; z-index: 60;
-  top: 4vh; left: 50%; transform: translateX(-50%);
-  width: min(680px, 94vw); max-height: 88vh; overflow-y: auto;
+  transform: translate(-50%, 3vh); visibility: visible;
+  transition: transform .28s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  #trade-card { transition: none; }
+  #trade-card.open { transition: none; }
 }
 .trade-backdrop {
   display: none; position: fixed; inset: 0; z-index: 55;
@@ -198,11 +206,19 @@ h1 {
   font-family: "Press Start 2P", VT323, monospace; font-size: 6px;
   color: var(--accent); letter-spacing: .05em;
 }
-@media (max-width: 640px) { #trade-card { display: none; }
+@media (max-width: 640px) { #trade-card {
+  position: fixed; z-index: 60; top: 0; left: 50%;
+  width: min(680px, 94vw); max-height: 86vh; overflow-y: auto;
+  transform: translate(-50%, -110%); visibility: hidden;
+  transition: transform .28s ease, visibility 0s linear .28s;
+}
 #trade-card.open {
-  display: block; position: fixed; z-index: 60;
-  top: 4vh; left: 50%; transform: translateX(-50%);
-  width: min(680px, 94vw); max-height: 88vh; overflow-y: auto;
+  transform: translate(-50%, 3vh); visibility: visible;
+  transition: transform .28s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  #trade-card { transition: none; }
+  #trade-card.open { transition: none; }
 }
 .trade-backdrop {
   display: none; position: fixed; inset: 0; z-index: 55;
