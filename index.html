@@ -169,6 +169,22 @@ h1 {
 }
 .mini-head .sub { font-size: 15px; color: var(--ink-3); }
 .bot-record { padding: 4px 18px 10px; font-size: 16px; color: var(--ink-3); }
+#trade-card { display: none; }
+#trade-card.open {
+  display: block; position: fixed; z-index: 60;
+  top: 4vh; left: 50%; transform: translateX(-50%);
+  width: min(680px, 94vw); max-height: 88vh; overflow-y: auto;
+}
+.trade-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 55;
+  background: rgba(5, 8, 24, .82);
+}
+.trade-backdrop.open { display: block; }
+.trade-close {
+  font-family: "Press Start 2P", VT323, monospace; font-size: 10px;
+  color: var(--accent); background: none; border: 2px solid var(--line);
+  padding: 4px 8px; cursor: pointer; margin-left: auto;
+}
 .machine-btn {
   position: fixed; top: 10px; right: 10px; z-index: 50;
   width: 46px; height: 52px; padding: 4px 4px 2px;
@@ -182,7 +198,23 @@ h1 {
   font-family: "Press Start 2P", VT323, monospace; font-size: 6px;
   color: var(--accent); letter-spacing: .05em;
 }
-@media (max-width: 640px) { .machine-btn { top: 6px; right: 6px; } }
+@media (max-width: 640px) { #trade-card { display: none; }
+#trade-card.open {
+  display: block; position: fixed; z-index: 60;
+  top: 4vh; left: 50%; transform: translateX(-50%);
+  width: min(680px, 94vw); max-height: 88vh; overflow-y: auto;
+}
+.trade-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 55;
+  background: rgba(5, 8, 24, .82);
+}
+.trade-backdrop.open { display: block; }
+.trade-close {
+  font-family: "Press Start 2P", VT323, monospace; font-size: 10px;
+  color: var(--accent); background: none; border: 2px solid var(--line);
+  padding: 4px 8px; cursor: pointer; margin-left: auto;
+}
+.machine-btn { top: 6px; right: 6px; } }
 .path-item { border-bottom: 2px solid var(--line); }
 .path-head {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
@@ -518,6 +550,7 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
   </svg>
   <span class="lbl">TRADE</span>
 </button>
+<div class="trade-backdrop" id="trade-backdrop"></div>
 <div class="wrap">
 
   <header class="masthead">
@@ -589,7 +622,7 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
     <div id="paths-body"></div>
   </section>
 
-  <section class="card" id="trade-card" hidden>
+  <section class="card" id=hidden>
     <button type="button" class="section-head trade-head" id="trade-toggle" aria-expanded="false">
       <h2>TRADE MACHINE</h2>
       <span class="sub">SAME ENGINE AS THE ODDS. TAP TO OPEN <span class="chev" id="trade-chev">&#9662;</span></span>
@@ -1762,7 +1795,7 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
   }
 
   function renderTrade() {
-    var card = document.getElementById("trade-card");
+    var card = document.getElementById();
     if (!DATA.trade || !(DATA.trade.futureWeeks || []).length) {
       card.hidden = true; return;
     }
@@ -2714,13 +2747,27 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
   renderExtras();
   (function () {
     var btn = document.getElementById("machine-btn");
-    var card = document.getElementById("trade-card");
+    var card = document.getElementById();
+    var back = document.getElementById("trade-backdrop");
     if (!btn) { return; }
     if (!card || card.hidden) { btn.hidden = true; return; }
-    btn.addEventListener("click", function () {
-      var head = card.querySelector(".section-head");
-      if (head && head.getAttribute("aria-expanded") === "false") { head.click(); }
-      card.scrollIntoView({ behavior: "smooth", block: "start" });
+    var head = card.querySelector(".section-head");
+    if (head) {
+      var x = document.createElement("button");
+      x.className = "trade-close";
+      x.textContent = "X CLOSE";
+      x.addEventListener("click", function (ev) { ev.stopPropagation(); setOpen(false); });
+      head.appendChild(x);
+    }
+    function setOpen(on) {
+      card.classList.toggle("open", on);
+      back.classList.toggle("open", on);
+      document.body.style.overflow = on ? "hidden" : "";
+    }
+    btn.addEventListener("click", function () { setOpen(!card.classList.contains("open")); });
+    back.addEventListener("click", function () { setOpen(false); });
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") { setOpen(false); }
     });
   })();
   renderFooter();
