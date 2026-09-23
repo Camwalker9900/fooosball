@@ -2779,6 +2779,15 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
       card.classList.toggle("open", on);
       back.classList.toggle("open", on);
       document.body.style.overflow = on ? "hidden" : "";
+      if (on) {
+        // the machine may carry a collapsed inner wrapper -- a modal must
+        // always open fully expanded
+        var h2 = card.querySelector(".section-head");
+        if (h2 && h2.getAttribute("aria-expanded") === "false") { h2.click(); }
+        for (var i2 = 0; i2 < card.children.length; i2++) {
+          if (card.children[i2] !== h2) { card.children[i2].hidden = false; }
+        }
+      }
     }
     btn.addEventListener("click", function () { setOpen(!card.classList.contains("open")); });
     back.addEventListener("click", function () { setOpen(false); });
