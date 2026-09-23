@@ -169,19 +169,19 @@ h1 {
 }
 .mini-head .sub { font-size: 15px; color: var(--ink-3); }
 .bot-record { padding: 4px 18px 10px; font-size: 16px; color: var(--ink-3); }
-#trade-card {
-  position: fixed; z-index: 60; top: 0; left: 50%;
-  width: min(680px, 94vw); max-height: 86vh; overflow-y: auto;
-  transform: translate(-50%, -110%); visibility: hidden;
-  transition: transform .28s ease, visibility 0s linear .28s;
-}
+#trade-card { display: none; }
 #trade-card.open {
-  transform: translate(-50%, 3vh); visibility: visible;
-  transition: transform .28s ease;
+  display: block; position: fixed; z-index: 60;
+  top: 3vh; left: 50%; transform: translateX(-50%);
+  width: min(680px, 94vw); max-height: 86vh; overflow-y: auto;
+  animation: trade-drop .25s ease;
+}
+@keyframes trade-drop {
+  from { transform: translate(-50%, -105%); top: 0; }
+  to { transform: translateX(-50%); top: 3vh; }
 }
 @media (prefers-reduced-motion: reduce) {
-  #trade-card { transition: none; }
-  #trade-card.open { transition: none; }
+  #trade-card.open { animation: none; }
 }
 .trade-backdrop {
   display: none; position: fixed; inset: 0; z-index: 55;
@@ -206,31 +206,7 @@ h1 {
   font-family: "Press Start 2P", VT323, monospace; font-size: 6px;
   color: var(--accent); letter-spacing: .05em;
 }
-@media (max-width: 640px) { #trade-card {
-  position: fixed; z-index: 60; top: 0; left: 50%;
-  width: min(680px, 94vw); max-height: 86vh; overflow-y: auto;
-  transform: translate(-50%, -110%); visibility: hidden;
-  transition: transform .28s ease, visibility 0s linear .28s;
-}
-#trade-card.open {
-  transform: translate(-50%, 3vh); visibility: visible;
-  transition: transform .28s ease;
-}
-@media (prefers-reduced-motion: reduce) {
-  #trade-card { transition: none; }
-  #trade-card.open { transition: none; }
-}
-.trade-backdrop {
-  display: none; position: fixed; inset: 0; z-index: 55;
-  background: rgba(5, 8, 24, .82);
-}
-.trade-backdrop.open { display: block; }
-.trade-close {
-  font-family: "Press Start 2P", VT323, monospace; font-size: 10px;
-  color: var(--accent); background: none; border: 2px solid var(--line);
-  padding: 4px 8px; cursor: pointer; margin-left: auto;
-}
-.machine-btn { top: 6px; right: 6px; } }
+@media (max-width: 640px) { .machine-btn { top: 6px; right: 6px; } }
 .path-item { border-bottom: 2px solid var(--line); }
 .path-head {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
