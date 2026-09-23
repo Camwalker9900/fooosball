@@ -1795,7 +1795,7 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
   }
 
   function renderTrade() {
-    var card = document.getElementById();
+    var card = document.getElementById("trade-card");
     if (!DATA.trade || !(DATA.trade.futureWeeks || []).length) {
       card.hidden = true; return;
     }
@@ -2747,7 +2747,7 @@ footer .blink { animation: blink 1.2s steps(1) infinite; color: var(--accent); }
   renderExtras();
   (function () {
     var btn = document.getElementById("machine-btn");
-    var card = document.getElementById();
+    var card = document.getElementById("trade-card");
     var back = document.getElementById("trade-backdrop");
     if (!btn) { return; }
     if (!card || card.hidden) { btn.hidden = true; return; }
