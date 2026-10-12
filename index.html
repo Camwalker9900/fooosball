@@ -462,18 +462,26 @@ button.trade-head:focus-visible { outline: 3px solid var(--s3); outline-offset: 
 .trade-h { font-family: "Press Start 2P", VT323, monospace; font-size: 8px;
   color: var(--ink-3); letter-spacing: .1em; }
 .trade-col { min-width: 0; }
-.trade-pick-row { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 4px 10px;
-  align-items: center; padding: 4px 0; border-bottom: 2px solid var(--rule); }
-.trade-pick-row:last-child { border-bottom: none; }
+button.trade-pick-row { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 2px 10px;
+  align-items: center; width: 100%; text-align: left; cursor: pointer;
+  appearance: none; background: none; color: inherit; font: inherit;
+  padding: 5px 2px; border: 0; border-bottom: 2px solid var(--rule); }
+button.trade-pick-row:last-child { border-bottom: none; }
+button.trade-pick-row:hover { background: var(--panel-3); }
+button.trade-pick-row:focus-visible { outline: 3px solid var(--s3); outline-offset: -3px; }
+.trade-colhead { padding: 10px 0 4px; }
+.trade-chip { grid-row: 1 / span 2; min-width: 52px; text-align: center;
+  font-family: "Press Start 2P", VT323, monospace; font-size: 7px;
+  padding: 7px 4px; background: var(--panel-2); color: var(--ink-3);
+  border: 2px solid var(--line); }
+.trade-pick-row.on-send .trade-chip { background: var(--accent); color: #100c00; }
+.trade-pick-row.on-want .trade-chip { background: var(--s3); color: #04121c; }
+.trade-pick-row.on-act .trade-chip { background: var(--green); color: #04140a; }
+.trade-pick-row.on-send .trade-name, .trade-pick-row.on-want .trade-name { color: var(--accent); }
+.trade-pick-row.on-want .trade-name { color: var(--s3); }
 .trade-name { font-size: 18px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .trade-tag { grid-column: 2; font-size: 13px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .trade-val { grid-column: 3; grid-row: 1 / span 2; font-size: 15px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
-select.trade-mini { grid-row: 1 / span 2; appearance: none; cursor: pointer;
-  font-family: "Press Start 2P", VT323, monospace; font-size: 7px;
-  padding: 7px 6px; background: var(--panel-2); color: var(--ink-2);
-  border: 2px solid var(--line); border-radius: 0; }
-select.trade-mini.on-send { background: var(--accent); color: #100c00; }
-select.trade-mini.on-drop { background: var(--s2); color: #fff; }
 details.trade-det { padding: 4px 0; }
 details.trade-det > summary { cursor: pointer; list-style: none;
   font-family: "Press Start 2P", VT323, monospace; font-size: 8px;
@@ -1223,10 +1231,14 @@ if(typeof require!=='undefined'&&require.main===module){
     const peers=E.rosters.filter(r=>rid(r.rid)!==rid(focus)&&(!options.opponent||rid(r.rid)===rid(options.opponent)));
     // Round-robin across every opponent AND package shape. Every roster player
     // is eligible, including injured players. A budget is disclosed explicitly.
+    // options.pool (trade block): only offers whose outgoing players all come
+    // from this declared set are enumerated; it narrows, never reorders.
+    const pool=Array.isArray(options.pool)&&options.pool.length?new Set(options.pool.map(String)):null;
+    const inPool=p=>!pool||p.moves.every(m=>m.from==null||rid(m.from)!==rid(focus)||pool.has(String(m.player)));
     const shapes=[[1,1],[1,2],[2,1],[2,2]];
     if(options.maxPackage===3)shapes.push([1,3],[3,1],[2,3],[3,2],[3,3]);
     const queues=peers.flatMap(r=>shapes.map(([a,b])=>swapPlans(E,rid(focus),rid(r.rid),a,b,options.seed||37)));
-    while(queues.length){for(let i=0;i<queues.length;){const n=queues[i].next();if(n.done)queues.splice(i,1);else {yield n.value;i++;}}}
+    while(queues.length){for(let i=0;i<queues.length;){const n=queues[i].next();if(n.done)queues.splice(i,1);else {if(inPool(n.value))yield n.value;i++;}}}
   }
   function planKey(p){return p.moves.map(m=>[m.player,m.from,m.to].join(':')).sort().join('|');}
   function rosterSignature(p){return p.moves.filter(m=>m.from!=null&&m.to!=null).map(m=>m.player).sort().join('|');}
@@ -1332,13 +1344,13 @@ if(typeof require!=='undefined'&&require.main===module){
     const number=x=>Number.isFinite(x)?(x>=0?'+':'')+x.toFixed(2):'n/a';
     const snapDate=(E.assembledAt||'').replace(/T/,' ').replace(/:\d\d\.\d+.*$/,'');
     container.textContent='';
+    let loadedPlan=null;
 
     /* ---- teams ---- */
     const top=el('div',undefined,container,'trade-top');
     const sides=[];
-    const teamSel=[];
-    for(let i=0;i<2;i++)teamSel.push(select(top,i?'VS':'YOU',E.rosters.map(r=>[r.rid,manager(r.rid)]),'trade-select'));
-    teamSel[1].selectedIndex=1;
+    const youSel=select(top,'YOU',E.rosters.map(r=>[r.rid,manager(r.rid)]),'trade-select');
+    const withSel=select(top,'TRADE WITH',[['','ANY TEAM'],...E.rosters.map(r=>[r.rid,manager(r.rid)])],'trade-select');
 
     /* ---- objective ---- */
     const objWrap=el('div',undefined,container,'trade-obj');
@@ -1349,19 +1361,21 @@ if(typeof require!=='undefined'&&require.main===module){
     for(const k of Object.keys(T.OBJECTIVES)){const b=el('button',OBJ_SHORT[k]||T.OBJECTIVES[k].label,seg);b.type='button';b.setAttribute('aria-pressed',String(k===objectiveKey));
       b.addEventListener('click',()=>{objectiveKey=k;for(const kk in objBtns)objBtns[kk].setAttribute('aria-pressed',String(kk===k));});objBtns[k]=b;}
 
-    /* ---- rosters ---- */
+    /* ---- rosters: tap your players ON THE BLOCK, tap theirs as WANT ---- */
     const teams=el('div',undefined,container,'trade-body');
     for(let i=0;i<2;i++){
       const box=el('div',undefined,teams,'trade-col');
+      el('div',i?'YOU WANT':'ON THE BLOCK',box,'trade-h trade-colhead');
       const rows=el('div',undefined,box,'trade-players');
-      const extra=el('details',undefined,box,'trade-det');el('summary','ADD-ONS (ACQUIRE / FAAB / PICKS)',extra);
+      const extra=el('details',undefined,box,'trade-det');el('summary','ADD-ONS (ACQUIRE / DROP / FAAB / PICKS)',extra);
       const add=select(extra,'Acquire',[['','None'],...(E.unownedCandidates||[]).map(id=>[id,player(id)])],'trade-select');
       const status=select(extra,'Terms',[['conditional','Conditional on acquiring'],['confirmed','Confirmed available']],'trade-select');
+      const drop=select(extra,'Drop',[['','None']],'trade-select');
       const faab=input(extra,'FAAB','number','0');faab.min='0';
       const asset=input(extra,'Pick / keeper / other');
       const low=input(extra,'Value low','number'),high=input(extra,'Value high','number'),source=input(extra,'Why');
       el('p','Blank value = unpriced; grade withheld. Negative = cost.',extra,'trade-fine');
-      sides.push({team:teamSel[i],rows,add,status,faab,asset,low,high,source});
+      sides.push({team:i?withSel:youSel,rows,state:{},add,status,drop,faab,asset,low,high,source});
     }
 
     /* ---- advanced ---- */
@@ -1375,35 +1389,55 @@ if(typeof require!=='undefined'&&require.main===module){
 
     /* ---- actions / progress / status ---- */
     const actions=el('div',undefined,container,'trade-actions');
-    const evaluateButton=el('button','EVALUATE',actions,'trade-go');
-    const suggestButton=el('button','SUGGEST',actions,'trade-go trade-2nd');
+    const suggestButton=el('button','SUGGEST',actions,'trade-go');
+    const evaluateButton=el('button','EVALUATE',actions,'trade-go trade-2nd');
     const cancelButton=el('button','CANCEL',actions,'trade-go trade-2nd');cancelButton.hidden=true;
     const bar=el('div',undefined,container,'trade-bar');bar.hidden=true;const fill=el('div',undefined,bar,'trade-fill');
-    const status=el('p','Pick SEND / DROP on each side, then EVALUATE. Or just hit SUGGEST.',container,'trade-status');
+    const status=el('p','Tap players you\'d be OK trading (offers use the ones that make sense, not all of them), pick a team or ANY, hit SUGGEST.',container,'trade-status');
     status.setAttribute('role','status');status.setAttribute('aria-live','polite');
     const output=el('div',undefined,container);
     el('p','HYPOTHETICAL ONLY \u00b7 SNAPSHOT '+snapDate+' \u00b7 FORECAST FROM WEEK '+E.forecastWeek+' \u00b7 NOT ROSTER ADVICE OR AN ACCEPTANCE PREDICTION \u00b7 CHECK LIVE NEWS BEFORE OFFERING',container,'trade-fine');
 
     let busy=false,cancelled=false;
-    function fill_roster(side){side.rows.textContent='';side.actions={};const r=E.rosters.find(r=>String(r.rid)===side.team.value);
-      const vals=r.pids.map(id=>(E.players[id]||{}).v||0);
-      const order=r.pids.slice();
-      for(const id of order){const p=E.players[id]||{},rules=(E.rosterRules||{})[r.rid]||{},reserved=(rules.reserveIds||[]).concat(rules.taxiIds||[]).includes(id);
-        const row=el('div',undefined,side.rows,'trade-pick-row');
-        const sel=select(row,'',[['keep','KEEP'],['send','SEND'],['drop','DROP'],...(reserved?[['activate','ACTIVATE']]:[])],'trade-mini');
-        sel.addEventListener('change',()=>{sel.className='trade-mini'+(sel.value==='send'?' on-send':sel.value==='drop'?' on-drop':sel.value==='activate'?' on-send':'');});
-        const nm=el('span',player(id),row,'trade-name');
-        el('span',p.p+(p.inj?' \u00b7 '+p.inj:'')+(reserved?' \u00b7 IR/TAXI':''),row,'trade-tag');
+    const CHIP={block:'BLOCK',want:'WANT',activate:'ACTIVATE'};
+    function paintRow(side,id){const row=side.rowsById[id];if(!row)return;const st=side.state[id];
+      row.className='trade-pick-row'+(st==='block'?' on-send':st==='want'?' on-want':st==='activate'?' on-act':'');
+      row.firstChild.textContent=st?CHIP[st]:'+';row.setAttribute('aria-pressed',String(!!st));}
+    function cycle(side,i,id,reserved){loadedPlan=null;const st=side.state[id];
+      if(i===0)side.state[id]=st==null?'block':(st==='block'&&reserved?'activate':undefined);
+      else side.state[id]=st==null?'want':undefined;
+      if(side.state[id]===undefined)delete side.state[id];
+      paintRow(side,id);}
+    function fill_roster(side,i){side.rows.textContent='';side.state={};side.rowsById={};
+      const r=E.rosters.find(r=>String(r.rid)===side.team.value);
+      side.drop.textContent='';for(const [v,t] of [['','None'],...(r?r.pids.map(id=>[id,player(id)]):[])]){const o=el('option',t,side.drop);o.value=v;}
+      if(!r){el('p',i?'ANY TEAM: SUGGEST searches the whole league for offers built from your block.':'',side.rows,'trade-fine');return;}
+      for(const id of r.pids){const p=E.players[id]||{},rules=(E.rosterRules||{})[r.rid]||{},reserved=(rules.reserveIds||[]).concat(rules.taxiIds||[]).includes(id);
+        const row=el('button',undefined,side.rows,'trade-pick-row');row.type='button';row.setAttribute('aria-pressed','false');
+        el('span','+',row,'trade-chip');
+        el('span',player(id),row,'trade-name');
+        el('span',p.p+(p.inj?' \u00b7 '+p.inj:'')+(reserved?' \u00b7 IR/TAXI (tap twice = activate)':''),row,'trade-tag');
         el('span',Number.isFinite(p.v)?p.v.toFixed(1):'',row,'trade-val');
-        side.actions[id]=sel;}}
-    sides.forEach(s=>{fill_roster(s);s.team.addEventListener('change',()=>{fill_roster(s);output.textContent='';});});
+        row.addEventListener('click',()=>cycle(side,i,id,reserved));
+        side.rowsById[id]=row;}}
+    sides.forEach((s,i)=>{fill_roster(s,i);s.team.addEventListener('change',()=>{loadedPlan=null;fill_roster(s,i);output.textContent='';});});
 
-    function plan(){if(sides[0].team.value===sides[1].team.value)throw Error('Pick two different teams');const moves=[],assets=[],activations=[];
-      sides.forEach((s,i)=>{const r=s.team.value;for(const [id,action] of Object.entries(s.actions))if(action.value==='activate')activations.push({player:id,rosterId:r});else if(action.value!=='keep')moves.push({player:id,from:r,to:action.value==='drop'?null:sides[1-i].team.value});
+    function plan(){
+      if(loadedPlan)return loadedPlan;
+      const focus=sides[0].team.value,partner=sides[1].team.value;
+      if(partner===focus)throw Error('Pick a different team');
+      const moves=[],assets=[],activations=[];
+      for(const [id,st] of Object.entries(sides[0].state)){if(st==='block'){if(!partner)throw Error('Pick a specific team to EVALUATE. SUGGEST works with ANY.');moves.push({player:id,from:focus,to:partner});}
+        else if(st==='activate')activations.push({player:id,rosterId:focus});}
+      for(const [id,st] of Object.entries(sides[1].state))if(st==='want')moves.push({player:id,from:partner,to:focus});
+      sides.forEach((s,i)=>{const r=s.team.value;if(!r)return;
+        if(s.drop.value)moves.push({player:s.drop.value,from:r,to:null});
         if(s.add.value)moves.push({player:s.add.value,from:null,to:r,acquisition:{status:s.status.value,faab:Number(s.faab.value)}});
         if(s.asset.value||s.add.value&&Number(s.faab.value)>0||s.low.value||s.high.value){const a={rosterId:r,name:s.asset.value||'FAAB acquisition cost',acquisitionPlayer:s.add.value||undefined};
           if(s.low.value!==''||s.high.value!==''){if(s.low.value===''||s.high.value==='')throw Error('Enter both ends of the asset value range');a.utilityRange=[Number(s.low.value),Number(s.high.value)];a.provenance=s.source.value;}assets.push(a);}
-      });return {moves,assets,activations};}
+      });
+      if(!moves.length&&!activations.length)throw Error('Tap at least one player first');
+      return {moves,assets,activations};}
     /* MessageChannel yields are not throttled in occluded/background windows,
        unlike setTimeout -- a backgrounded search would otherwise crawl. */
     const tick=typeof MessageChannel!=='undefined'
@@ -1429,7 +1463,7 @@ if(typeof require!=='undefined'&&require.main===module){
         statRow(panel,'PTS/WK',s.dMu);statRow(panel,'NEXT WK',s.dNext);
         statRow(panel,'PLAYOFF pp',s.dP);statRow(panel,'TITLE pp',s.dT);
         if(s.unpriced.length)el('p','UNPRICED: '+s.unpriced.join('; '),panel,'trade-fine bad2');
-        if(grade.checked&&s.gradeRange)el('p','grade range '+s.gradeRange.join('-'),panel,'trade-fine');
+        if(grade.checked&&s.gradeRange)el('p','grade range '+s.gradeRange.join(' to '),panel,'trade-fine');
         el('p',s.conclusion,panel,'trade-fine');
         const details=el('details',undefined,panel,'trade-det');el('summary','WEEKLY LINEUPS',details);
         table(details,['Wk','Before','After','\u0394','Bench'],s.lineups.map(x=>[x.week,x.before.map(player).join(', '),x.after.map(player).join(', '),number(x.delta),x.afterBench.map(player).join(', ')]));
@@ -1456,20 +1490,28 @@ if(typeof require!=='undefined'&&require.main===module){
         if(!alternative.moves.some(m=>m.from==null))throw Error('Set your alternative acquisition (and any drop) first');T.complete(E,alternative);o.alternatives=[alternative];}
       const report=await T.evaluate(E,p,o);render(report,output);status.textContent='EVALUATED.';},true));
     suggestButton.addEventListener('click',()=>run(async()=>{const o=options();const n=Number(budget.value);if(!Number.isInteger(n)||n<1||n>100000)throw Error('Search budget must be 1 to 100000');
-      const result=await T.search(E,sides[0].team.value,{...o,maxPackage:Number(maxPackage.value),maxCandidates:n,progress:p=>{const part=p.scanned||p.done||0,whole=p.total||n;progress(part,whole);status.textContent=p.phase.toUpperCase()+' '+part.toLocaleString()+' / '+whole.toLocaleString();}});
+      const block=Object.entries(sides[0].state).filter(([,st])=>st==='block').map(([id])=>id);
+      const partner=sides[1].team.value;
+      const result=await T.search(E,sides[0].team.value,{...o,maxPackage:Number(maxPackage.value),maxCandidates:n,
+        ...(partner?{opponent:partner}:{}),...(block.length?{pool:block}:{}),
+        progress:p=>{const part=p.scanned||p.done||0,whole=p.total||n;progress(part,whole);status.textContent=p.phase.toUpperCase()+' '+part.toLocaleString()+' / '+whole.toLocaleString();}});
       status.textContent=result.scanned.toLocaleString()+' looked at \u00b7 '+result.legal+' legal \u00b7 '+result.finalists+' stress tested'+(result.exhaustive?' \u00b7 every package examined':' \u00b7 budget hit, search incomplete');
-      if(!result.suggestions.length)el('p','NO QUALIFYING OFFER. Nothing beat your objective, helped the other side, and survived stress + verification. (Does not prove no good trade exists.)',output,'trade-fine');
+      if(!result.suggestions.length)el('p','NO QUALIFYING OFFER'+(block.length?' FROM YOUR BLOCK':'')+(partner?' WITH '+manager(partner):'')+'. Nothing beat your objective, helped the other side, and survived stress + verification. (Does not prove no good trade exists.)',output,'trade-fine');
       for(const item of result.suggestions){const box=el('article',undefined,output,'trade-cardlet');
         const tag=(SUG_SHORT.find(([re])=>re.test(item.label))||[,item.label])[1];el('h3',tag,box);
         const focus=sides[0].team.value;
+        const other=(item.plan.moves.find(m=>m.from!=null&&m.to!=null&&String(m.from)!==focus)||{}).from;
         const gets=item.plan.moves.filter(m=>String(m.to)===focus).map(m=>player(m.player));
         const gives=item.plan.moves.filter(m=>String(m.from)===focus).map(m=>m.to==null?player(m.player)+' (drop)':player(m.player));
-        el('p','GETS '+(gets.join(', ')||'nothing')+' \u00b7 GIVES '+(gives.join(', ')||'nothing'),box,'trade-name');
+        el('p',(other?'WITH '+manager(other)+' \u00b7 ':'')+'GETS '+(gets.join(', ')||'nothing')+' \u00b7 GIVES '+(gives.join(', ')||'nothing'),box,'trade-name');
         const v=item.verification.sides[focus];
         el('p','YOU '+number(item.report.sides[focus].objective)+' \u00b7 VERIFIED '+number(v.objective)+' \u00b1'+(1.96*v.objectiveSE).toFixed(2)+' \u00b7 acceptance unknown',box,'trade-fine');
         const load=el('button','LOAD OFFER',box,'trade-go trade-2nd');
         const det=el('details',undefined,box,'trade-det');el('summary','FULL REPORT',det);render(item.report,det);
-        load.addEventListener('click',()=>{const other=item.plan.moves.find(m=>m.from!=null&&m.to!=null&&String(m.from)!==focus).from;sides[1].team.value=String(other);sides.forEach(s=>{fill_roster(s);s.add.value='';s.asset.value=s.low.value=s.high.value=s.source.value='';});for(const m of item.plan.moves){const s=sides.find(s=>s.team.value===String(m.from));if(s&&s.actions[m.player]){s.actions[m.player].value=m.to==null?'drop':'send';s.actions[m.player].dispatchEvent(new doc.defaultView.Event('change'));}}status.textContent='OFFER LOADED \u00b7 EVALUATE for break-even detail.';});}
+        load.addEventListener('click',()=>{if(other!=null){sides[1].team.value=String(other);fill_roster(sides[1],1);}fill_roster(sides[0],0);
+          for(const m of item.plan.moves){if(String(m.from)===focus&&m.to!=null){sides[0].state[m.player]='block';paintRow(sides[0],m.player);}
+            if(String(m.to)===focus&&m.from!=null){sides[1].state[m.player]='want';paintRow(sides[1],m.player);}}
+          loadedPlan=item.plan;status.textContent='OFFER LOADED \u00b7 EVALUATE for break-even detail.';});}
       el('p',result.limitations.join('. '),output,'trade-fine');
     }));
     cancelButton.addEventListener('click',()=>{cancelled=true;status.textContent='Cancelling...';});
