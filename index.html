@@ -454,6 +454,63 @@ button.trade-head:focus-visible { outline: 3px solid var(--s3); outline-offset: 
 .trade-note { padding: 10px 18px 14px; font-size: 15px; color: var(--ink-3); }
 .good2 { color: var(--green); } .bad2 { color: var(--s2); }
 
+/* ---------- trade machine v2 skin ---------- */
+.trade-top { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 14px 18px 0; }
+.trade-top label { display: flex; flex-direction: column; gap: 6px;
+  font-family: "Press Start 2P", VT323, monospace; font-size: 8px; color: var(--ink-3); }
+.trade-obj { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 18px 0; }
+.trade-h { font-family: "Press Start 2P", VT323, monospace; font-size: 8px;
+  color: var(--ink-3); letter-spacing: .1em; }
+.trade-col { min-width: 0; }
+.trade-pick-row { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 4px 10px;
+  align-items: center; padding: 4px 0; border-bottom: 2px solid var(--rule); }
+.trade-pick-row:last-child { border-bottom: none; }
+.trade-name { font-size: 18px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trade-tag { grid-column: 2; font-size: 13px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trade-val { grid-column: 3; grid-row: 1 / span 2; font-size: 15px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+select.trade-mini { grid-row: 1 / span 2; appearance: none; cursor: pointer;
+  font-family: "Press Start 2P", VT323, monospace; font-size: 7px;
+  padding: 7px 6px; background: var(--panel-2); color: var(--ink-2);
+  border: 2px solid var(--line); border-radius: 0; }
+select.trade-mini.on-send { background: var(--accent); color: #100c00; }
+select.trade-mini.on-drop { background: var(--s2); color: #fff; }
+details.trade-det { padding: 4px 0; }
+details.trade-det > summary { cursor: pointer; list-style: none;
+  font-family: "Press Start 2P", VT323, monospace; font-size: 8px;
+  color: var(--accent); letter-spacing: .06em; padding: 8px 0; }
+details.trade-det > summary::before { content: "\25b8 "; }
+details.trade-det[open] > summary::before { content: "\25be "; }
+.trade-adv { padding: 4px 18px; }
+.trade-adv label, .trade-det label { display: block; font-size: 16px; color: var(--ink-2); margin: 7px 0; }
+#trade-card input[type=text], #trade-card input[type=number] {
+  font-family: VT323, monospace; font-size: 17px; color: var(--ink);
+  background: var(--panel-2); border: 2px solid var(--line); border-radius: 0;
+  padding: 3px 8px; max-width: 110px; }
+#trade-card input[type=checkbox] { accent-color: #f8c020; width: 14px; height: 14px; }
+.trade-2nd { background: var(--panel-2); color: var(--accent); }
+.trade-bar { height: 16px; margin: 4px 18px 0; background: #050818;
+  border: 3px solid var(--line); overflow: hidden; }
+.trade-fill { height: 100%; width: 0%;
+  background: repeating-linear-gradient(to right, var(--accent) 0 6px, #c89818 6px 8px); }
+.trade-bar.pulse .trade-fill { width: 30%; animation: tmslide 1.1s linear infinite; }
+@keyframes tmslide { 0% { margin-left: -30%; } 100% { margin-left: 100%; } }
+@media (prefers-reduced-motion: reduce) { .trade-bar.pulse .trade-fill { animation: none; width: 100%; opacity: .4; } }
+.trade-status { padding: 8px 18px 2px; font-size: 16px; color: var(--ink-3); }
+.trade-fine { font-size: 14px; line-height: 1.35; color: var(--ink-3); margin: 6px 0; padding: 0 18px; }
+.trade-panel .trade-fine, .trade-cardlet .trade-fine, details .trade-fine { padding: 0; }
+.trade-moves { padding: 8px 18px 0; font-size: 16px; color: var(--ink-2); }
+.trade-moves p { margin: 2px 0; }
+.trade-cardlet { border: 3px solid var(--line); background: var(--panel-2);
+  box-shadow: 3px 3px 0 rgba(0,0,0,.6); margin: 12px 18px; padding: 10px 14px; }
+.trade-cardlet h3 { margin: 0 0 6px; font-family: "Press Start 2P", VT323, monospace;
+  font-size: 9px; color: var(--accent); }
+.trade-cardlet .trade-go { margin-top: 8px; }
+.trade-table-scroll { overflow-x: auto; }
+@media (max-width: 640px) {
+  .trade-top { grid-template-columns: 1fr; }
+  .trade-name { font-size: 16px; }
+}
+
 /* ---------- tables ---------- */
 .table-scroll { overflow-x: auto; padding: 10px 18px 18px; }
 table { border-collapse: collapse; width: 100%; }
@@ -1263,97 +1320,157 @@ if(typeof require!=='undefined'&&require.main===module){
 (function(root){
   'use strict';
   const T=root.TradeAnalysis;
+  const OBJ_SHORT={next:'NEXT WK',season:'SEASON',playoffs:'PLAYOFFS',title:'TITLE'};
+  const SUG_SHORT=[[/largest/i,'BIGGEST UPSIDE'],[/lower bound|strongest/i,'SAFEST BET'],[/fewest|smallest/i,'SMALLEST DEAL']];
   function mount(container,E){
     const doc=container.ownerDocument;
-    const el=(tag,text,parent)=>{const n=doc.createElement(tag);if(text!==undefined)n.textContent=text;if(parent)parent.appendChild(n);return n;};
+    const el=(tag,text,parent,cls)=>{const n=doc.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;if(parent)parent.appendChild(n);return n;};
     const input=(parent,label,type='text',value='')=>{const l=el('label',label+' ',parent),n=el('input',undefined,l);n.type=type;n.value=value;return n;};
-    const select=(parent,label,items)=>{const l=el('label',label+' ',parent),n=el('select',undefined,l);for(const [v,t] of items){const o=el('option',t,n);o.value=v;}return n;};
+    const select=(parent,label,items,cls)=>{const l=el('label',label?label+' ':'',parent),n=el('select',undefined,l,cls);for(const [v,t] of items){const o=el('option',t,n);o.value=v;}return n;};
     const player=id=>(E.players[id]||{}).n||id;
     const manager=r=>(E.rosters.find(x=>String(x.rid)===String(r))||{}).mgr||'Team '+r;
-    const number=x=>Number.isFinite(x)?(x>=0?'+':'')+x.toFixed(2):'unavailable';
+    const number=x=>Number.isFinite(x)?(x>=0?'+':'')+x.toFixed(2):'n/a';
+    const snapDate=(E.assembledAt||'').replace(/T/,' ').replace(/:\d\d\.\d+.*$/,'');
     container.textContent='';
-    el('p','Private hypothetical analysis. Benefits depend on the forecast and tested assumptions. This is not a prediction that another manager will accept.',container);
-    el('p','Forecast begins week '+E.forecastWeek+'. '+(E.assembledAt?'Snapshot assembled '+E.assembledAt+'. ':'')+'Assembly time does not establish projection freshness; verify current player news and roster availability.',container);
-    const controls=el('div',undefined,container);controls.className='trade-controls';
-    const objective=select(controls,'Your objective',Object.entries(T.OBJECTIVES).map(([k,v])=>[k,v.label]));objective.value='season';
-    const maxPackage=select(controls,'Largest package',[['2','Two players per side'],['3','Three players per side (larger search)']]);
-    const budget=input(controls,'Candidate budget','number','25000');budget.min='1';budget.max='100000';
-    el('p','Suggestions search every opponent and include injured players. The candidate budget can stop the search before every package is examined. Required drops are included; automatic waiver acquisitions are not assumed.',container);
-    const teams=el('div',undefined,container);teams.className='trade-body';
+
+    /* ---- teams ---- */
+    const top=el('div',undefined,container,'trade-top');
     const sides=[];
+    const teamSel=[];
+    for(let i=0;i<2;i++)teamSel.push(select(top,i?'VS':'YOU',E.rosters.map(r=>[r.rid,manager(r.rid)]),'trade-select'));
+    teamSel[1].selectedIndex=1;
+
+    /* ---- objective ---- */
+    const objWrap=el('div',undefined,container,'trade-obj');
+    el('span','OBJECTIVE',objWrap,'trade-h');
+    const seg=el('div',undefined,objWrap,'seg');
+    let objectiveKey='season';
+    const objBtns={};
+    for(const k of Object.keys(T.OBJECTIVES)){const b=el('button',OBJ_SHORT[k]||T.OBJECTIVES[k].label,seg);b.type='button';b.setAttribute('aria-pressed',String(k===objectiveKey));
+      b.addEventListener('click',()=>{objectiveKey=k;for(const kk in objBtns)objBtns[kk].setAttribute('aria-pressed',String(kk===k));});objBtns[k]=b;}
+
+    /* ---- rosters ---- */
+    const teams=el('div',undefined,container,'trade-body');
     for(let i=0;i<2;i++){
-      const box=el('div',undefined,teams);box.className='trade-col';
-      const team=select(box,i?'Other team':'Your team',E.rosters.map(r=>[r.rid,manager(r.rid)]));team.selectedIndex=i;
-      const rows=el('div',undefined,box);rows.className='trade-players';
-      const extra=el('details',undefined,box);el('summary','Optional acquisition and other assets',extra);
-      const add=select(extra,'Acquire', [['','None'],...(E.unownedCandidates||[]).map(id=>[id,player(id)])]);
-      el('p',E.unownedCandidateScope||'Only explicitly listed unowned players are available here. Availability must be checked separately.',extra);
-      const status=select(extra,'Availability',[['conditional','Conditional on acquiring player'],['confirmed','Confirmed available on stated terms']]);
-      const faab=input(extra,'FAAB spent','number','0');faab.min='0';
-      const asset=input(extra,'Pick / keeper / other cost or benefit');
-      el('p','Optional signed utility range for all listed non-player assets and FAAB together. Negative values are costs. Leave blank if unpriced; the overall grade will be withheld.',extra);
-      const low=input(extra,'Low utility','number'),high=input(extra,'High utility','number'),source=input(extra,'Valuation source / reasoning');
-      sides.push({team,rows,add,status,faab,asset,low,high,source});
+      const box=el('div',undefined,teams,'trade-col');
+      const rows=el('div',undefined,box,'trade-players');
+      const extra=el('details',undefined,box,'trade-det');el('summary','ADD-ONS (ACQUIRE / FAAB / PICKS)',extra);
+      const add=select(extra,'Acquire',[['','None'],...(E.unownedCandidates||[]).map(id=>[id,player(id)])],'trade-select');
+      const status=select(extra,'Terms',[['conditional','Conditional on acquiring'],['confirmed','Confirmed available']],'trade-select');
+      const faab=input(extra,'FAAB','number','0');faab.min='0';
+      const asset=input(extra,'Pick / keeper / other');
+      const low=input(extra,'Value low','number'),high=input(extra,'Value high','number'),source=input(extra,'Why');
+      el('p','Blank value = unpriced; grade withheld. Negative = cost.',extra,'trade-fine');
+      sides.push({team:teamSel[i],rows,add,status,faab,asset,low,high,source});
     }
-    const gradeDetails=el('details',undefined,container);el('summary','Optional preference grade',gradeDetails);
-    const grade=input(gradeDetails,'Show letter grade','checkbox');grade.checked=false;
-    el('p','Grade utility = points per week x weight + playoff percentage-point change x weight + title percentage-point change x weight + your asset valuation. These weights express preferences, not calibrated trade value.',gradeDetails);
-    const weightInputs={points:input(gradeDetails,'Points/week weight','number','1'),playoffs:input(gradeDetails,'Playoff weight','number','0.5'),title:input(gradeDetails,'Title weight','number','1.5')};
-    const compare=input(container,'Compare your specified acquisition/drop alone with the trade','checkbox');
-    const actions=el('div',undefined,container),evaluateButton=el('button','Evaluate complete transaction',actions),suggestButton=el('button','Find trade suggestions',actions),cancelButton=el('button','Cancel',actions);
-    const status=el('p','Select Send, Drop, or Keep for each player.',container),output=el('div',undefined,container);
+
+    /* ---- advanced ---- */
+    const adv=el('details',undefined,container,'trade-det trade-adv');el('summary','ADVANCED',adv);
+    const grade=input(adv,'Show letter grade','checkbox');grade.checked=false;
+    const weightInputs={points:input(adv,'Pts/wk weight','number','1'),playoffs:input(adv,'Playoff weight','number','0.5'),title:input(adv,'Title weight','number','1.5')};
+    const maxPackage=select(adv,'Largest package',[['2','2 per side'],['3','3 per side (slower)']],'trade-select');
+    const budget=input(adv,'Search budget','number','10000');budget.min='1';budget.max='100000';
+    const compare=input(adv,'Compare add/drop alone vs trade','checkbox');
+    el('p','Weights are preferences, not market value. Grade = pts/wk + weighted playoff and title changes + your asset values.',adv,'trade-fine');
+
+    /* ---- actions / progress / status ---- */
+    const actions=el('div',undefined,container,'trade-actions');
+    const evaluateButton=el('button','EVALUATE',actions,'trade-go');
+    const suggestButton=el('button','SUGGEST',actions,'trade-go trade-2nd');
+    const cancelButton=el('button','CANCEL',actions,'trade-go trade-2nd');cancelButton.hidden=true;
+    const bar=el('div',undefined,container,'trade-bar');bar.hidden=true;const fill=el('div',undefined,bar,'trade-fill');
+    const status=el('p','Pick SEND / DROP on each side, then EVALUATE. Or just hit SUGGEST.',container,'trade-status');
     status.setAttribute('role','status');status.setAttribute('aria-live','polite');
-    [evaluateButton,suggestButton,cancelButton].forEach(n=>n.className='trade-go');
+    const output=el('div',undefined,container);
+    el('p','HYPOTHETICAL ONLY \u00b7 SNAPSHOT '+snapDate+' \u00b7 FORECAST FROM WEEK '+E.forecastWeek+' \u00b7 NOT ROSTER ADVICE OR AN ACCEPTANCE PREDICTION \u00b7 CHECK LIVE NEWS BEFORE OFFERING',container,'trade-fine');
+
     let busy=false,cancelled=false;
-    function fill(side){side.rows.textContent='';side.actions={};const r=E.rosters.find(r=>String(r.rid)===side.team.value);
-      for(const id of r.pids){const p=E.players[id]||{},rules=(E.rosterRules||{})[r.rid]||{},reserved=(rules.reserveIds||[]).concat(rules.taxiIds||[]).includes(id);side.actions[id]=select(side.rows,player(id)+' ('+p.p+(p.inj?', '+p.inj:'')+(reserved?', reserve/taxi':'')+')',[['keep','Keep'],['send','Send'],['drop','Drop'],...(reserved?[['activate','Activate into roster']]:[])]);}}
-    sides.forEach(s=>{fill(s);s.team.addEventListener('change',()=>{fill(s);output.textContent='';});});
-    function plan(){if(sides[0].team.value===sides[1].team.value)throw Error('Choose two different teams');const moves=[],assets=[],activations=[];
+    function fill_roster(side){side.rows.textContent='';side.actions={};const r=E.rosters.find(r=>String(r.rid)===side.team.value);
+      const vals=r.pids.map(id=>(E.players[id]||{}).v||0);
+      const order=r.pids.slice();
+      for(const id of order){const p=E.players[id]||{},rules=(E.rosterRules||{})[r.rid]||{},reserved=(rules.reserveIds||[]).concat(rules.taxiIds||[]).includes(id);
+        const row=el('div',undefined,side.rows,'trade-pick-row');
+        const sel=select(row,'',[['keep','KEEP'],['send','SEND'],['drop','DROP'],...(reserved?[['activate','ACTIVATE']]:[])],'trade-mini');
+        sel.addEventListener('change',()=>{sel.className='trade-mini'+(sel.value==='send'?' on-send':sel.value==='drop'?' on-drop':sel.value==='activate'?' on-send':'');});
+        const nm=el('span',player(id),row,'trade-name');
+        el('span',p.p+(p.inj?' \u00b7 '+p.inj:'')+(reserved?' \u00b7 IR/TAXI':''),row,'trade-tag');
+        el('span',Number.isFinite(p.v)?p.v.toFixed(1):'',row,'trade-val');
+        side.actions[id]=sel;}}
+    sides.forEach(s=>{fill_roster(s);s.team.addEventListener('change',()=>{fill_roster(s);output.textContent='';});});
+
+    function plan(){if(sides[0].team.value===sides[1].team.value)throw Error('Pick two different teams');const moves=[],assets=[],activations=[];
       sides.forEach((s,i)=>{const r=s.team.value;for(const [id,action] of Object.entries(s.actions))if(action.value==='activate')activations.push({player:id,rosterId:r});else if(action.value!=='keep')moves.push({player:id,from:r,to:action.value==='drop'?null:sides[1-i].team.value});
         if(s.add.value)moves.push({player:s.add.value,from:null,to:r,acquisition:{status:s.status.value,faab:Number(s.faab.value)}});
         if(s.asset.value||s.add.value&&Number(s.faab.value)>0||s.low.value||s.high.value){const a={rosterId:r,name:s.asset.value||'FAAB acquisition cost',acquisitionPlayer:s.add.value||undefined};
-          if(s.low.value!==''||s.high.value!==''){if(s.low.value===''||s.high.value==='')throw Error('Enter both ends of the asset utility range');a.utilityRange=[Number(s.low.value),Number(s.high.value)];a.provenance=s.source.value;}assets.push(a);}
+          if(s.low.value!==''||s.high.value!==''){if(s.low.value===''||s.high.value==='')throw Error('Enter both ends of the asset value range');a.utilityRange=[Number(s.low.value),Number(s.high.value)];a.provenance=s.source.value;}assets.push(a);}
       });return {moves,assets,activations};}
-    function options(){return {objective:objective.value,focus:sides[0].team.value,weights:Object.fromEntries(Object.entries(weightInputs).map(([k,n])=>[k,Number(n.value)])),
-      yield:()=>new Promise(resolve=>setTimeout(resolve,0)),cancelled:()=>cancelled};}
-    function table(parent,headers,rows){const scroll=el('div',undefined,parent);scroll.className='trade-table-scroll';const t=el('table',undefined,scroll),head=el('tr',undefined,el('thead',undefined,t));headers.forEach(h=>el('th',h,head));const body=el('tbody',undefined,t);for(const row of rows){const tr=el('tr',undefined,body);row.forEach(x=>el('td',String(x),tr));}return t;}
-    function showPlan(p,parent){for(const a of p.activations||[])el('p',player(a.player)+': activate for '+manager(a.rosterId),parent);for(const m of p.moves)el('p',player(m.player)+': '+(m.from==null?'Unowned':manager(m.from))+' -> '+(m.to==null?'Drop':manager(m.to))+(m.acquisition?' ('+m.acquisition.status+', FAAB '+m.acquisition.faab+')':''),parent);}
+    /* MessageChannel yields are not throttled in occluded/background windows,
+       unlike setTimeout -- a backgrounded search would otherwise crawl. */
+    const tick=typeof MessageChannel!=='undefined'
+      ?()=>new Promise(resolve=>{const ch=new MessageChannel();ch.port1.onmessage=()=>resolve();ch.port2.postMessage(0);})
+      :()=>new Promise(resolve=>setTimeout(resolve,0));
+    function options(){return {objective:objectiveKey,focus:sides[0].team.value,weights:Object.fromEntries(Object.entries(weightInputs).map(([k,n])=>[k,Number(n.value)])),
+      yield:tick,cancelled:()=>cancelled};}
+    function table(parent,headers,rows){const scroll=el('div',undefined,parent,'trade-table-scroll');const t=el('table',undefined,scroll),head=el('tr',undefined,el('thead',undefined,t));headers.forEach(h=>el('th',h,head));const body=el('tbody',undefined,t);for(const row of rows){const tr=el('tr',undefined,body);row.forEach(x=>el('td',String(x),tr));}return t;}
+    function showPlan(p,parent){const box=el('div',undefined,parent,'trade-moves');
+      for(const a of p.activations||[])el('p','ACTIVATE '+player(a.player)+' ('+manager(a.rosterId)+')',box);
+      for(const m of p.moves)el('p',player(m.player)+': '+(m.from==null?'unowned':manager(m.from))+' \u2192 '+(m.to==null?'drop':manager(m.to))+(m.acquisition?' ('+m.acquisition.status+', FAAB '+m.acquisition.faab+')':''),box);}
+    function statRow(parent,label,value,se){const row=el('div',undefined,parent,'tp-row');el('span',label,row);
+      const v=el('span',number(value)+(Number.isFinite(se)&&se>0?' \u00b1'+(1.96*se).toFixed(2):''),row,'val '+(value>0.0001?'good2':value<-0.0001?'bad2':''));return row;}
     function render(report,parent){
       showPlan(report.plan,parent);
+      const panels=el('div',undefined,parent,'trade-panels');
       for(const r of [sides[0].team.value,...new Set(report.plan.moves.flatMap(m=>[m.from,m.to]).filter(x=>x!=null).map(String).filter(x=>x!==sides[0].team.value))]){
         const s=report.sides[r];if(!s)continue;
-        el('h3',manager(r)+': '+s.conclusion,parent);
-        table(parent,['Next unlocked week pts','Points/week','Remaining regular-season pts*','Playoffs pp','Title pp'],[[number(s.dNext),number(s.dMu),number(s.seasonPoints),number(s.dP),number(s.dT)]]);
-        el('p','Selected objective: '+number(s.objective)+'; approximate 95% Monte Carlo interval '+number(s.objective-1.96*s.objectiveSE)+' to '+number(s.objective+1.96*s.objectiveSE)+'. Tested assumption range: '+s.scenarioRange.map(number).join(' to ')+'. This range is not a calibrated confidence interval.',parent);
-        if(s.unpriced.length)el('p','Overall value unresolved: '+s.unpriced.join('; '),parent);
-        if(grade.checked)el('p','Preference grade: '+(s.grade||'withheld')+(s.gradeRange?' (assets and Monte Carlo range '+s.gradeRange.join(' to ')+')':'')+'; utility range '+s.utilityRange.map(number).join(' to ')+'. Grade thresholds are heuristic; inspect uncertainty before interpreting a letter.',parent);
-        const details=el('details',undefined,parent);el('summary','Weekly lineup and bench explanation',details);
-        table(details,['Week','Before starters','After starters','Expected change','After bench'],s.lineups.map(x=>[x.week,x.before.map(player).join(', '),x.after.map(player).join(', '),number(x.delta),x.afterBench.map(player).join(', ')]));
-        el('p','Lineups use expected player availability for explanation. Simulations also vary availability and talent; these rows are not realized future lineups.',details);
+        const panel=el('div',undefined,panels,'trade-panel');
+        const h=el('div',undefined,panel);el('span',manager(r),h,'tp-mgr');
+        if(grade.checked)el('span','GRADE: '+(s.grade||'withheld'),h,'tp-grade '+(s.objective>0?'good2':'bad2'));
+        statRow(panel,OBJ_SHORT[objectiveKey]||'OBJECTIVE',s.objective,s.objectiveSE);
+        statRow(panel,'PTS/WK',s.dMu);statRow(panel,'NEXT WK',s.dNext);
+        statRow(panel,'PLAYOFF pp',s.dP);statRow(panel,'TITLE pp',s.dT);
+        if(s.unpriced.length)el('p','UNPRICED: '+s.unpriced.join('; '),panel,'trade-fine bad2');
+        if(grade.checked&&s.gradeRange)el('p','grade range '+s.gradeRange.join('-'),panel,'trade-fine');
+        el('p',s.conclusion,panel,'trade-fine');
+        const details=el('details',undefined,panel,'trade-det');el('summary','WEEKLY LINEUPS',details);
+        table(details,['Wk','Before','After','\u0394','Bench'],s.lineups.map(x=>[x.week,x.before.map(player).join(', '),x.after.map(player).join(', '),number(x.delta),x.afterBench.map(player).join(', ')]));
       }
-      const stress=el('details',undefined,parent);el('summary','Tested assumptions',stress);
-      table(stress,['Scenario','Your objective'],report.scenarios.map(x=>[x.name,number(x.sides[sides[0].team.value].objective)]));
-      if(report.breakEven&&report.breakEven.projection){const b=el('details',undefined,parent);el('summary','Break-even assumptions for incoming players',b);
-        table(b,['Projection multiplier','Objective','Monte Carlo SE'],report.breakEven.projection.map(x=>[x.factor,number(x.value),number(x.se)]));
-        table(b,['Additional absence assumption (weeks)','Objective','Monte Carlo SE'],report.breakEven.returns.map(x=>[x.delay,number(x.value),number(x.se)]));
-        el('p',report.breakEven.interpretation+'. '+report.breakEven.scope,b);}
-      if(report.alternatives.length){el('h4','Alternatives versus keeping your roster',parent);table(parent,['Alternative','Your objective'],[['Keep current roster','0'],['This transaction',number(report.sides[sides[0].team.value].objective)],...report.alternatives.filter(a=>a.sides).map(a=>[a.name,number(a.sides[sides[0].team.value].objective)])]);}
-      el('p',(report.capacityAssumption||'League roster capacity used.')+' '+report.assumptions.join('. ')+'. *Postseason-only runs use remaining playoff weeks.',parent);
+      const fine=el('details',undefined,parent,'trade-det');el('summary','STRESS TESTS + FINE PRINT',fine);
+      table(fine,['Scenario','Your objective'],report.scenarios.map(x=>[x.name,number(x.sides[sides[0].team.value].objective)]));
+      const fs=report.sides[sides[0].team.value];
+      if(fs)el('p','Tested-assumption range '+fs.scenarioRange.map(number).join(' to ')+' (declared assumptions, not a calibrated interval). \u00b1 figures are 95% Monte Carlo sampling error only.',fine,'trade-fine');
+      if(report.breakEven&&report.breakEven.projection){el('p','BREAK-EVEN',fine,'trade-h');
+        table(fine,['Projection x','Objective','SE'],report.breakEven.projection.map(x=>[x.factor,number(x.value),number(x.se)]));
+        table(fine,['Extra weeks out','Objective','SE'],report.breakEven.returns.map(x=>[x.delay,number(x.value),number(x.se)]));
+        el('p',report.breakEven.interpretation+'. '+report.breakEven.scope,fine,'trade-fine');}
+      if(report.alternatives.length)table(fine,['Alternative','Your objective'],[['Keep current roster','0'],['This transaction',number(fs.objective)],...report.alternatives.filter(a=>a.sides).map(a=>[a.name,number(a.sides[sides[0].team.value].objective)])]);
+      el('p',(report.capacityAssumption||'League roster capacity used.')+' '+report.assumptions.join('. ')+'.',fine,'trade-fine');
     }
-    async function run(action){if(busy)return;busy=true;cancelled=false;evaluateButton.disabled=suggestButton.disabled=true;sides.forEach(s=>s.team.disabled=true);output.textContent='';
-      const locked=Array.from(container.querySelectorAll('input,select,button')).filter(n=>n!==cancelButton);locked.forEach(n=>n.disabled=true);
-      try{await action();}catch(e){status.textContent=e.message;}finally{busy=false;locked.forEach(n=>n.disabled=false);}}
-    evaluateButton.addEventListener('click',()=>run(async()=>{const p=plan(),o=options();status.textContent='Evaluating paired worlds and assumptions...';
+    function setBusy(on,indeterminate){busy=on;evaluateButton.hidden=suggestButton.hidden=on;cancelButton.hidden=!on;
+      bar.hidden=!on;bar.classList.toggle('pulse',!!indeterminate);if(!on)fill.style.width='0%';}
+    function progress(part,whole){bar.classList.remove('pulse');fill.style.width=Math.max(2,Math.min(100,100*part/(whole||1)))+'%';}
+    async function run(action,indeterminate){if(busy)return;cancelled=false;setBusy(true,indeterminate);output.textContent='';
+      const locked=Array.from(container.querySelectorAll('input,select')).filter(n=>n!==cancelButton);locked.forEach(n=>n.disabled=true);
+      try{await action();}catch(e){status.textContent=e.message;}finally{setBusy(false);locked.forEach(n=>n.disabled=false);}}
+    evaluateButton.addEventListener('click',()=>run(async()=>{const p=plan(),o=options();status.textContent='SIMULATING PAIRED WORLDS...';
       if(compare.checked){const r=sides[0].team.value,alternative={name:'Specified acquisition/drop only',moves:p.moves.filter(m=>m.from==null&&String(m.to)===r||m.to==null&&String(m.from)===r),assets:p.assets.filter(a=>String(a.rosterId)===r&&a.acquisitionPlayer)};
-        if(!alternative.moves.some(m=>m.from==null))throw Error('Specify your alternative acquisition and any required drop first');T.complete(E,alternative);o.alternatives=[alternative];}
-      const report=await T.evaluate(E,p,o);render(report,output);status.textContent='Evaluation complete.';}));
-    suggestButton.addEventListener('click',()=>run(async()=>{const o=options();const n=Number(budget.value);if(!Number.isInteger(n)||n<1||n>100000)throw Error('Candidate budget must be 1 to 100000');
-      const result=await T.search(E,sides[0].team.value,{...o,maxPackage:Number(maxPackage.value),maxCandidates:n,progress:p=>status.textContent=p.phase+': '+(p.scanned||p.done)+' / '+(p.total||n)});
-      status.textContent=result.scanned+' packages examined; '+result.legal+' legal; '+result.finalists+' stress tested. '+(result.exhaustive?'Declared package universe exhausted.':'Candidate budget reached; search is incomplete.');
-      if(!result.suggestions.length)el('p','No offer passed your objective, counterparty benefit, stress tests and independent-seed verification. This does not prove no good trade exists.',output);
-      for(const item of result.suggestions){const box=el('article',undefined,output);el('h3',item.label,box);render(item.report,box);el('p','Independent verification: '+number(item.verification.sides[sides[0].team.value].objective)+' (SE '+number(item.verification.sides[sides[0].team.value].objectiveSE)+'). Counterparty screening requires season-points benefit within the stated 0.1 points/week tolerance; willingness to accept is unknown.',box);
-        const load=el('button','Load this complete offer',box);load.addEventListener('click',()=>{const focus=sides[0].team.value,other=item.plan.moves.find(m=>m.from!=null&&m.to!=null&&String(m.from)!==focus).from;sides[1].team.value=String(other);sides.forEach(s=>{fill(s);s.add.value='';s.asset.value=s.low.value=s.high.value=s.source.value='';});for(const m of item.plan.moves){const s=sides.find(s=>s.team.value===String(m.from));if(s&&s.actions[m.player])s.actions[m.player].value=m.to==null?'drop':'send';}status.textContent='Offer loaded; evaluate for break-even details.';});}
-      el('p',result.limitations.join('. '),output);
+        if(!alternative.moves.some(m=>m.from==null))throw Error('Set your alternative acquisition (and any drop) first');T.complete(E,alternative);o.alternatives=[alternative];}
+      const report=await T.evaluate(E,p,o);render(report,output);status.textContent='EVALUATED.';},true));
+    suggestButton.addEventListener('click',()=>run(async()=>{const o=options();const n=Number(budget.value);if(!Number.isInteger(n)||n<1||n>100000)throw Error('Search budget must be 1 to 100000');
+      const result=await T.search(E,sides[0].team.value,{...o,maxPackage:Number(maxPackage.value),maxCandidates:n,progress:p=>{const part=p.scanned||p.done||0,whole=p.total||n;progress(part,whole);status.textContent=p.phase.toUpperCase()+' '+part.toLocaleString()+' / '+whole.toLocaleString();}});
+      status.textContent=result.scanned.toLocaleString()+' looked at \u00b7 '+result.legal+' legal \u00b7 '+result.finalists+' stress tested'+(result.exhaustive?' \u00b7 every package examined':' \u00b7 budget hit, search incomplete');
+      if(!result.suggestions.length)el('p','NO QUALIFYING OFFER. Nothing beat your objective, helped the other side, and survived stress + verification. (Does not prove no good trade exists.)',output,'trade-fine');
+      for(const item of result.suggestions){const box=el('article',undefined,output,'trade-cardlet');
+        const tag=(SUG_SHORT.find(([re])=>re.test(item.label))||[,item.label])[1];el('h3',tag,box);
+        const focus=sides[0].team.value;
+        const gets=item.plan.moves.filter(m=>String(m.to)===focus).map(m=>player(m.player));
+        const gives=item.plan.moves.filter(m=>String(m.from)===focus).map(m=>m.to==null?player(m.player)+' (drop)':player(m.player));
+        el('p','GETS '+(gets.join(', ')||'nothing')+' \u00b7 GIVES '+(gives.join(', ')||'nothing'),box,'trade-name');
+        const v=item.verification.sides[focus];
+        el('p','YOU '+number(item.report.sides[focus].objective)+' \u00b7 VERIFIED '+number(v.objective)+' \u00b1'+(1.96*v.objectiveSE).toFixed(2)+' \u00b7 acceptance unknown',box,'trade-fine');
+        const load=el('button','LOAD OFFER',box,'trade-go trade-2nd');
+        const det=el('details',undefined,box,'trade-det');el('summary','FULL REPORT',det);render(item.report,det);
+        load.addEventListener('click',()=>{const other=item.plan.moves.find(m=>m.from!=null&&m.to!=null&&String(m.from)!==focus).from;sides[1].team.value=String(other);sides.forEach(s=>{fill_roster(s);s.add.value='';s.asset.value=s.low.value=s.high.value=s.source.value='';});for(const m of item.plan.moves){const s=sides.find(s=>s.team.value===String(m.from));if(s&&s.actions[m.player]){s.actions[m.player].value=m.to==null?'drop':'send';s.actions[m.player].dispatchEvent(new doc.defaultView.Event('change'));}}status.textContent='OFFER LOADED \u00b7 EVALUATE for break-even detail.';});}
+      el('p',result.limitations.join('. '),output,'trade-fine');
     }));
     cancelButton.addEventListener('click',()=>{cancelled=true;status.textContent='Cancelling...';});
     return {evaluate:T.evaluate,search:T.search};
