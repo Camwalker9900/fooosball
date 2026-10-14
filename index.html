@@ -385,6 +385,9 @@ h1 {
 #trade-inner button { margin: 5px; }
 #trade-inner details { margin: 14px 0; }
 #trade-inner summary { cursor: pointer; color: var(--accent); }
+#trade-inner .trade-addon { margin: 10px 0 14px; padding: 6px 10px; border-left: 3px solid var(--line); }
+#trade-inner .trade-addon .trade-h { display: block; margin-bottom: 4px; }
+#trade-inner .trade-addon .trade-fine { margin: 4px 0 8px; }
 #trade-inner article { padding: 14px 0; border-top: 2px solid var(--line); }
 .trade-controls { display: flex; flex-wrap: wrap; gap: 16px; }
 .trade-table-scroll { overflow-x: auto; }
@@ -1457,6 +1460,18 @@ if(typeof require!=='undefined'&&require.main===module){
     const el=(tag,text,parent,cls)=>{const n=doc.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;if(parent)parent.appendChild(n);return n;};
     const input=(parent,label,type='text',value='')=>{const l=el('label',label+' ',parent),n=el('input',undefined,l);n.type=type;n.value=value;return n;};
     const select=(parent,label,items,cls)=>{const l=el('label',label?label+' ':'',parent),n=el('select',undefined,l,cls);for(const [v,t] of items){const o=el('option',t,n);o.value=v;}return n;};
+    /* Position-grouped, rank-ordered player selects: same projection ranking
+       the roster rows show, so the dropdown reads like the site's own board. */
+    const POS_ORDER=['QB','RB','WR','TE','K','DEF'];
+    const rankedFill=(n,ids)=>{const byPos={};
+      for(const id of ids){const pos=(E.players[id]||{}).p||'?';(byPos[pos]=byPos[pos]||[]).push(id);}
+      const order=Object.keys(byPos).sort((a,b)=>{const x=POS_ORDER.indexOf(a),y=POS_ORDER.indexOf(b);return (x<0?99:x)-(y<0?99:y)||(a<b?-1:1);});
+      for(const pos of order){const g=doc.createElement('optgroup');g.label=pos+' \u00b7 BEST FIRST';n.appendChild(g);
+        byPos[pos].sort((a,b)=>((E.players[b]||{}).v||0)-((E.players[a]||{}).v||0));
+        byPos[pos].forEach((id,i)=>{const p=E.players[id]||{};
+          const o=el('option',pos+(i+1)+' '+player(id)+(p.t?' \u00b7 '+p.t:'')+(Number.isFinite(p.v)?' \u00b7 '+p.v.toFixed(1):'')+(p.inj?' \u00b7 '+p.inj:''),g);o.value=id;});}};
+    const rankedSelect=(parent,label,ids)=>{const l=el('label',label+' ',parent),n=el('select',undefined,l,'trade-select');
+      el('option','None',n).value='';rankedFill(n,ids);return n;};
     const player=id=>(E.players[id]||{}).n||id;
     const manager=r=>(E.rosters.find(x=>String(x.rid)===String(r))||{}).mgr||'Team '+r;
     const number=x=>Number.isFinite(x)?(x>=0?'+':'')+x.toFixed(2):'n/a';
@@ -1485,14 +1500,17 @@ if(typeof require!=='undefined'&&require.main===module){
       const box=el('div',undefined,teams,'trade-col');
       el('div',i?'YOU WANT':'ON THE BLOCK',box,'trade-h trade-colhead');
       const rows=el('div',undefined,box,'trade-players');
-      const extra=el('details',undefined,box,'trade-det');el('summary',(i?'THEIR':'YOUR')+' ADD-ONS (ACQUIRE / DROP / FAAB / PICKS)',extra);
-      const add=select(extra,'Acquire',[['','None'],...(E.unownedCandidates||[]).map(id=>[id,player(id)])],'trade-select');
-      const status=select(extra,'Terms',[['conditional','Conditional on acquiring'],['confirmed','Confirmed available']],'trade-select');
-      const drop=select(extra,'Drop',[['','None']],'trade-select');
-      const faab=input(extra,'FAAB','number','0');faab.min='0';
-      const asset=input(extra,'Pick / keeper / other');
-      const low=input(extra,'Value low','number'),high=input(extra,'Value high','number'),source=input(extra,'Why');
-      el('p','Blank value = unpriced; grade withheld. Negative = cost.',extra,'trade-fine');
+      const extra=el('details',undefined,box,'trade-det');el('summary',(i?'THEIR':'YOUR')+' ADD-ONS: WAIVER PICKUP \u00b7 DROP \u00b7 PICKS (OPTIONAL)',extra);
+      const group=(title,hint)=>{const g=el('div',undefined,extra,'trade-addon');el('span',title,g,'trade-h');el('p',hint,g,'trade-fine');return g;};
+      const pickup=group('+ WAIVER PICKUP','This side also claims a free agent as part of the deal. Grouped by position, best projection first.');
+      const add=rankedSelect(pickup,'Player',E.unownedCandidates||[]);
+      const faab=input(pickup,'FAAB bid','number','0');faab.min='0';
+      const status=select(pickup,'Terms',[['conditional','Conditional (only if the claim wins)'],['confirmed','Confirmed available']],'trade-select');
+      const dropG=group('- DROP','This side also cuts a player to clear a roster spot.');
+      const drop=rankedSelect(dropG,'Player',[]);
+      const assetG=group('* PICKS / KEEPERS / OTHER','Anything the engine cannot price. Blank value = grade withheld. Negative value = a cost.');
+      const asset=input(assetG,'What is it');
+      const low=input(assetG,'Value low','number'),high=input(assetG,'Value high','number'),source=input(assetG,'Why that value');
       sides.push({team:i?withSel:youSel,rows,extra,state:{},add,status,drop,faab,asset,low,high,source});
     }
 
@@ -1533,7 +1551,7 @@ if(typeof require!=='undefined'&&require.main===module){
       paintRow(side,id);}
     function fill_roster(side,i){side.rows.textContent='';side.state={};side.rowsById={};
       const r=E.rosters.find(r=>String(r.rid)===side.team.value);
-      side.drop.textContent='';for(const [v,t] of [['','None'],...(r?r.pids.map(id=>[id,player(id)]):[])]){const o=el('option',t,side.drop);o.value=v;}
+      side.drop.textContent='';el('option','None',side.drop).value='';if(r)rankedFill(side.drop,r.pids);
       side.extra.hidden=!r;
       if(!r){el('p',i?'ANY TEAM: SUGGEST searches the whole league for offers built from your block.':'',side.rows,'trade-fine');return;}
       for(const id of r.pids){const p=E.players[id]||{},rules=(E.rosterRules||{})[r.rid]||{},reserved=(rules.reserveIds||[]).concat(rules.taxiIds||[]).includes(id);
@@ -2222,8 +2240,13 @@ if(typeof require!=='undefined'&&require.main===module){
   </section>
 
   <section class="card" id="roster-tools-card">
-    <div class="section-head"><h2>WAVIER WIRE SAFARI + WEEKLY STRATEGIST</h2></div>
-    <div id="roster-tools">A compatible forecast and full waiver inventory are required after the next refresh.</div>
+    <button type="button" class="section-head trade-head" id="roster-toggle" aria-expanded="false">
+      <h2>WAVIER WIRE SAFARI + WEEKLY STRATEGIST</h2>
+      <span class="sub">HOLD &#183; REPLACE &#183; COVER BYES &#183; SHOP TRADES. TAP TO OPEN <span class="chev">&#9662;</span></span>
+    </button>
+    <div id="roster-tools-inner" hidden>
+      <div id="roster-tools">A compatible forecast and full waiver inventory are required after the next refresh.</div>
+    </div>
   </section>
 
   <section class="card" id="trade-card" hidden>
@@ -3536,6 +3559,11 @@ if(typeof require!=='undefined'&&require.main===module){
   renderChart();
   renderSeeds();
   renderTrade();
+  var rtToggle=document.getElementById("roster-toggle");
+  rtToggle.addEventListener("click",function(){
+    var inner=document.getElementById("roster-tools-inner");inner.hidden=!inner.hidden;
+    rtToggle.setAttribute("aria-expanded",String(!inner.hidden));
+  });
   if(DATA.trade&&DATA.trade.version===ForecastEngine.VERSION)RosterUI.mount(document.getElementById("roster-tools"),DATA.trade,function(request){
     if(!tradeController)return;
     tradeController.request(request);
